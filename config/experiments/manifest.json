@@ -1,0 +1,1138 @@
+{
+  "schema_version": 1,
+  "design": "one scalar change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride",
+  "timing": "wall time of simulator.run() only; one fresh process and exact nearest-node lookup cache per notebook",
+  "repetitions": 1,
+  "inputs": {
+    "trips": "data_inputs/trip/gt_2022_off_campus_trips.csv",
+    "network": "data_inputs/network",
+    "lots": "data_inputs/network/lots.gpkg"
+  },
+  "output_root": "data_outputs/experiments",
+  "summary_notebook": "notebooks/experiments/summary.ipynb",
+  "experiments": [
+    {
+      "experiment_id": "e01_direct_baseline",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "baseline",
+      "baseline_value": null,
+      "value": null,
+      "description": "Unchanged direct configuration from config/gt_2022.yaml.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e01_direct_baseline.yaml",
+      "notebook_path": "notebooks/experiments/e01_direct_baseline.ipynb",
+      "output_path": "data_outputs/experiments/e01_direct_baseline"
+    },
+    {
+      "experiment_id": "e02_direct_horizon_30",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 30,
+      "description": "Expand the matching horizon from 15 to 30 minutes.",
+      "config": {
+        "horizon": 30.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e02_direct_horizon_30.yaml",
+      "notebook_path": "notebooks/experiments/e02_direct_horizon_30.ipynb",
+      "output_path": "data_outputs/experiments/e02_direct_horizon_30"
+    },
+    {
+      "experiment_id": "e03_direct_dt_10",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "dt",
+      "baseline_value": 5.0,
+      "value": 10,
+      "description": "Check the pool every 10 minutes instead of every 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 10.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e03_direct_dt_10.yaml",
+      "notebook_path": "notebooks/experiments/e03_direct_dt_10.ipynb",
+      "output_path": "data_outputs/experiments/e03_direct_dt_10"
+    },
+    {
+      "experiment_id": "e04_direct_delta1_5",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.0.delta1",
+      "baseline_value": 15.0,
+      "value": 5,
+      "description": "Limit departure separation to 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 5.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e04_direct_delta1_5.yaml",
+      "notebook_path": "notebooks/experiments/e04_direct_delta1_5.ipynb",
+      "output_path": "data_outputs/experiments/e04_direct_delta1_5"
+    },
+    {
+      "experiment_id": "e05_direct_r1_2p5",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.1.r1",
+      "baseline_value": 5.0,
+      "value": 2.5,
+      "description": "Limit origin separation to 2.5 kilometers.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 2.5
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e05_direct_r1_2p5.yaml",
+      "notebook_path": "notebooks/experiments/e05_direct_r1_2p5.ipynb",
+      "output_path": "data_outputs/experiments/e05_direct_r1_2p5"
+    },
+    {
+      "experiment_id": "e06_direct_mu_1_1p25",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.25,
+      "description": "Limit the Euclidean detour ratio to 1.25.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.25
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e06_direct_mu_1_1p25.yaml",
+      "notebook_path": "notebooks/experiments/e06_direct_mu_1_1p25.ipynb",
+      "output_path": "data_outputs/experiments/e06_direct_mu_1_1p25"
+    },
+    {
+      "experiment_id": "e07_direct_gamma_1_1p25",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.3.gamma_1",
+      "baseline_value": 1.5,
+      "value": 1.25,
+      "description": "Limit the driving-time ratio to 1.25.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.25
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e07_direct_gamma_1_1p25.yaml",
+      "notebook_path": "notebooks/experiments/e07_direct_gamma_1_1p25.ipynb",
+      "output_path": "data_outputs/experiments/e07_direct_gamma_1_1p25"
+    },
+    {
+      "experiment_id": "e08_direct_gamma_2_0p75",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.4.gamma_2",
+      "baseline_value": 0.5,
+      "value": 0.75,
+      "description": "Require at least a 0.75 shared-time ratio.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.75
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e08_direct_gamma_2_0p75.yaml",
+      "notebook_path": "notebooks/experiments/e08_direct_gamma_2_0p75.ipynb",
+      "output_path": "data_outputs/experiments/e08_direct_gamma_2_0p75"
+    },
+    {
+      "experiment_id": "e09_direct_delta2_5",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.5.delta2",
+      "baseline_value": 10.0,
+      "value": 5,
+      "description": "Limit passenger waiting to 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 5.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e09_direct_delta2_5.yaml",
+      "notebook_path": "notebooks/experiments/e09_direct_delta2_5.ipynb",
+      "output_path": "data_outputs/experiments/e09_direct_delta2_5"
+    },
+    {
+      "experiment_id": "e10_direct_assigner_greedy",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "assigner",
+      "baseline_value": "matching",
+      "value": "greedy",
+      "description": "Compare greedy assignment with maximum-cardinality matching.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "greedy",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e10_direct_assigner_greedy.yaml",
+      "notebook_path": "notebooks/experiments/e10_direct_assigner_greedy.ipynb",
+      "output_path": "data_outputs/experiments/e10_direct_assigner_greedy"
+    },
+    {
+      "experiment_id": "e11_pnr_baseline",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "baseline",
+      "baseline_value": null,
+      "value": null,
+      "description": "Unchanged pnr configuration from config/gt_2022_pnr.yaml.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e11_pnr_baseline.yaml",
+      "notebook_path": "notebooks/experiments/e11_pnr_baseline.ipynb",
+      "output_path": "data_outputs/experiments/e11_pnr_baseline"
+    },
+    {
+      "experiment_id": "e12_pnr_horizon_30",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 30,
+      "description": "Expand the matching horizon from 15 to 30 minutes.",
+      "config": {
+        "horizon": 30.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e12_pnr_horizon_30.yaml",
+      "notebook_path": "notebooks/experiments/e12_pnr_horizon_30.ipynb",
+      "output_path": "data_outputs/experiments/e12_pnr_horizon_30"
+    },
+    {
+      "experiment_id": "e13_pnr_dt_10",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "dt",
+      "baseline_value": 5.0,
+      "value": 10,
+      "description": "Check the pool every 10 minutes instead of every 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 10.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e13_pnr_dt_10.yaml",
+      "notebook_path": "notebooks/experiments/e13_pnr_dt_10.ipynb",
+      "output_path": "data_outputs/experiments/e13_pnr_dt_10"
+    },
+    {
+      "experiment_id": "e14_pnr_delta1_5",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.0.delta1",
+      "baseline_value": 15.0,
+      "value": 5,
+      "description": "Limit departure separation to 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 5.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e14_pnr_delta1_5.yaml",
+      "notebook_path": "notebooks/experiments/e14_pnr_delta1_5.ipynb",
+      "output_path": "data_outputs/experiments/e14_pnr_delta1_5"
+    },
+    {
+      "experiment_id": "e15_pnr_r_p_2p5",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.r_p",
+      "baseline_value": 5.0,
+      "value": 2.5,
+      "description": "Limit origin-to-lot reach to 2.5 kilometers.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 2.5,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e15_pnr_r_p_2p5.yaml",
+      "notebook_path": "notebooks/experiments/e15_pnr_r_p_2p5.ipynb",
+      "output_path": "data_outputs/experiments/e15_pnr_r_p_2p5"
+    },
+    {
+      "experiment_id": "e16_pnr_mu_1_1p25",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.25,
+      "description": "Limit the Euclidean detour ratio to 1.25.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.25
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e16_pnr_mu_1_1p25.yaml",
+      "notebook_path": "notebooks/experiments/e16_pnr_mu_1_1p25.ipynb",
+      "output_path": "data_outputs/experiments/e16_pnr_mu_1_1p25"
+    },
+    {
+      "experiment_id": "e17_pnr_mu_3_0p25",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.3.mu_3",
+      "baseline_value": 0.5,
+      "value": 0.25,
+      "description": "Limit the passenger access-distance ratio to 0.25.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.25
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e17_pnr_mu_3_0p25.yaml",
+      "notebook_path": "notebooks/experiments/e17_pnr_mu_3_0p25.ipynb",
+      "output_path": "data_outputs/experiments/e17_pnr_mu_3_0p25"
+    },
+    {
+      "experiment_id": "e18_pnr_gamma_1_1p25",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.4.gamma_1",
+      "baseline_value": 1.5,
+      "value": 1.25,
+      "description": "Limit the driving-time ratio to 1.25.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.25
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e18_pnr_gamma_1_1p25.yaml",
+      "notebook_path": "notebooks/experiments/e18_pnr_gamma_1_1p25.ipynb",
+      "output_path": "data_outputs/experiments/e18_pnr_gamma_1_1p25"
+    },
+    {
+      "experiment_id": "e19_pnr_gamma_2_0p75",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.5.gamma_2",
+      "baseline_value": 0.5,
+      "value": 0.75,
+      "description": "Require at least a 0.75 shared-time ratio.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.75
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e19_pnr_gamma_2_0p75.yaml",
+      "notebook_path": "notebooks/experiments/e19_pnr_gamma_2_0p75.ipynb",
+      "output_path": "data_outputs/experiments/e19_pnr_gamma_2_0p75"
+    },
+    {
+      "experiment_id": "e20_pnr_delta2_5",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.6.delta2",
+      "baseline_value": 10.0,
+      "value": 5,
+      "description": "Limit waiting at the lot to 5 minutes.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 5.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e20_pnr_delta2_5.yaml",
+      "notebook_path": "notebooks/experiments/e20_pnr_delta2_5.ipynb",
+      "output_path": "data_outputs/experiments/e20_pnr_delta2_5"
+    },
+    {
+      "experiment_id": "e21_both_direct_first",
+      "mode": "both",
+      "baseline_id": "e21_both_direct_first",
+      "parameter": "baseline",
+      "baseline_value": null,
+      "value": null,
+      "description": "Direct carpool, then park-and-ride, each with its unchanged baseline filters.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          },
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e21_both_direct_first.yaml",
+      "notebook_path": "notebooks/experiments/e21_both_direct_first.ipynb",
+      "output_path": "data_outputs/experiments/e21_both_direct_first"
+    }
+  ]
+}

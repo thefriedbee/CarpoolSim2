@@ -1,0 +1,25 @@
+# Door-to-door carpool for the Georgia Tech 2022 off-campus commute.
+# Times are minutes. Distances are kilometers. A ratio compares the carpool
+# tour with the driver's own trip.
+
+horizon: 15
+dt: 5
+et: null
+commit: window
+assigner: matching
+
+modes:
+  - name: direct
+    filters:
+      - filter: FilterDepartureTime
+        delta1: 15
+      - filter: FilterOriginEuclideanDistance
+        r1: 5
+      - filter: FilterRerouteEuclideanDistance
+        mu_1: 1.5
+      - filter: FilterRerouteTravelTime
+        gamma_1: 1.5
+      - filter: FilterSharedTravelTime
+        gamma_2: 0.5
+      - filter: FilterPassengerWaitTime
+        delta2: 10
