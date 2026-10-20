@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+*.egg-info/
+dist/
+build/
+
+# Jupyter notebooks and checkpoints
+notebooks/
+.ipynb_checkpoints/
+*.ipynb
+
+# Simulation inputs and outputs (bulky extracts, networks, trips, run results)
+data_inputs/**
+!data_inputs/**/
+!data_inputs/**/README.md
+data_outputs/
+
+# Local scratch
+temp/
+
+# OS and editors
+.DS_Store
+.AppleDouble
+.LSOverride
+.idea/
+.vscode/
+*.swp
+*~
