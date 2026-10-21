@@ -17,6 +17,8 @@ htmlcov/
 *.egg-info/
 dist/
 build/
+docs/_build/
+docs/generated/
 
 # Jupyter notebooks and checkpoints
 notebooks/

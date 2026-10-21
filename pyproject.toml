@@ -21,6 +21,11 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8"]
 app = ["streamlit>=1.40"]
+docs = [
+    "myst-parser>=4",
+    "pydata-sphinx-theme>=0.16",
+    "sphinx>=8",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
