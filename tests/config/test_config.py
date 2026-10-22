@@ -231,3 +231,29 @@ def test_mode_names_are_required_once(tmp_path: Path) -> None:
     path.write_text("modes:\n  - name: direct\n    filters: []\n  - name: direct\n    filters: []\n")
     with pytest.raises(ValueError, match="mode names must be unique"):
         load_config(path)
+
+
+def test_max_size_is_kept_when_set_and_omitted_when_absent(tmp_path: Path) -> None:
+    path = tmp_path / "run.yaml"
+    path.write_text("max_size: 40\nmodes:\n  - name: direct\n    filters: []\n")
+    loaded = load_config(path)
+    simulator = loaded.build(cluster())
+
+    assert loaded.max_size == 40
+    assert simulator.max_size == 40
+    assert loaded.to_dict()["max_size"] == 40
+    assert SimulationConfig.from_simulator(simulator).to_dict() == loaded.to_dict()
+    assert loaded.with_horizon(30).max_size == 40
+    assert "max_size" not in load_config(ROOT / "config" / "gt_2022.yaml").to_dict()
+
+    path.write_text("max_size: null\n")
+    assert load_config(path).max_size is None
+    assert "max_size" not in load_config(path).to_dict()
+
+    with pytest.raises(ValueError, match="max_size must be at least 2"):
+        SimulationConfig(max_size=1)
+    with pytest.raises(ValueError, match="max_size must be an integer"):
+        SimulationConfig(max_size=True)
+    path.write_text("max_size: 2.5\n")
+    with pytest.raises(ValueError, match="max_size must be an integer"):
+        load_config(path)

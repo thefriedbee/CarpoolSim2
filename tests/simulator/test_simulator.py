@@ -443,3 +443,61 @@ def test_step_commit_defers_a_driver_who_leaves_after_this_step() -> None:
     assert window.solos == []
     assert [(match.driver, match.rider, match.t) for match in step.matches] == [(0, 1, 10.0)]
     assert step.solos == []
+
+
+class RecordIds:
+    """Remember the traveler ids passed to each filter call."""
+
+    def __init__(self) -> None:
+        self.seen: list[list[int]] = []
+
+    def __call__(self, cluster: TripCluster, matrix: np.ndarray) -> None:
+        self.seen.append([int(trip_id) for trip_id in cluster.ids])
+
+
+def pair_ends(matrix: np.ndarray, ids: np.ndarray) -> list[tuple[int, int]]:
+    """Pair the first traveler in this matrix with the last."""
+    if ids.shape[0] < 2:
+        return []
+    return [(int(ids[0]), int(ids[-1]))]
+
+
+def test_max_size_must_be_an_integer_of_at_least_two() -> None:
+    cluster = cluster_at(0)
+
+    with pytest.raises(ValueError, match="max_size must be at least 2"):
+        Simulator(cluster, GreedyAssigner(), max_size=1)
+    with pytest.raises(ValueError, match="max_size must be an integer"):
+        Simulator(cluster, GreedyAssigner(), max_size=True)
+
+
+def test_max_size_filters_each_spatial_group_on_its_own() -> None:
+    record = RecordIds()
+    simulator = Simulator(
+        cluster_at(0, 0, 0, 0),
+        GreedyAssigner(),
+        filters=(record,),
+        horizon=15,
+        dt=5,
+        max_size=2,
+    )
+
+    simulator.run()
+
+    assert record.seen == [[0, 1], [2, 3]]
+    assert [(match.driver, match.rider) for match in simulator.matches] == [(0, 1), (2, 3)]
+    assert simulator.solos == []
+
+
+def test_max_size_keeps_a_pair_inside_its_own_group() -> None:
+    origins = np.array([0.0, 0.0, 50_000.0, 50_000.0])
+    cluster = TripCluster(origins, np.zeros(4), origins.copy(), np.zeros(4), np.zeros(4))
+    open_pool = Simulator(cluster, pair_ends, horizon=15, dt=5)
+    grouped = Simulator(cluster, pair_ends, horizon=15, dt=5, max_size=2)
+
+    open_pool.run()
+    grouped.run()
+
+    assert [(match.driver, match.rider) for match in open_pool.matches] == [(0, 3), (1, 2)]
+    assert [(match.driver, match.rider) for match in grouped.matches] == [(0, 1), (2, 3)]
+    assert grouped.solos == []

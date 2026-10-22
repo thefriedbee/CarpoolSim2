@@ -36,7 +36,7 @@ _ASSIGNERS = {
     "bipartite": BipartiteAssigner,
 }
 _ASSIGNER_NAMES = {factory: name for name, factory in _ASSIGNERS.items()}
-_CONFIG_KEYS = {"horizon", "dt", "et", "commit", "assigner", "modes"}
+_CONFIG_KEYS = {"horizon", "dt", "et", "commit", "assigner", "max_size", "modes"}
 _MODE_KEYS = {"name", "r_p", "filters"}
 
 
@@ -132,12 +132,14 @@ class SimulationConfig:
     ``horizon`` and ``dt`` are minutes. ``et`` limits who may drive; omitted,
     anyone in the pool may drive. ``commit`` is ``"window"`` or ``"step"``.
     ``assigner`` is ``"matching"``, ``"greedy"``, or ``"bipartite"``.
+    ``max_size``, when set, is the most travelers one matching group may
+    hold. Omitted, each pool stays one group.
 
     The default is a 15-minute horizon, a 5-minute step, no ``et``, window
-    commit, the maximum-cardinality matcher, and one empty mode named
-    ``"direct"``. A file replaces whichever of these it sets. A single mode
-    with an empty name is the unnamed filter list ``Simulator`` uses when it
-    is constructed without modes.
+    commit, the maximum-cardinality matcher, no ``max_size``, and one empty
+    mode named ``"direct"``. A file replaces whichever of these it sets. A
+    single mode with an empty name is the unnamed filter list ``Simulator``
+    uses when it is constructed without modes.
 
     ``build`` turns this into a ``Simulator``. Travel-time filters receive
     ``router``. A park-and-ride mode receives one ``PnrPlan`` built from
@@ -152,6 +154,7 @@ class SimulationConfig:
         commit: str = "window",
         assigner: str = "matching",
         modes: Sequence[ModeConfig] | None = None,
+        max_size: int | None = None,
     ) -> None:
         self.horizon = _real(horizon, "horizon")
         self.dt = _real(dt, "dt")
@@ -162,6 +165,7 @@ class SimulationConfig:
         if not isinstance(assigner, str) or assigner not in _ASSIGNERS:
             raise ValueError("assigner must be 'matching', 'greedy', or 'bipartite'")
         self.assigner = assigner
+        self.max_size = None if max_size is None else _count(max_size, "max_size")
         self.modes = (ModeConfig("direct", ()),) if modes is None else tuple(modes)
         _check_modes(self.modes)
         if self.dt <= 0:
@@ -172,6 +176,8 @@ class SimulationConfig:
             raise ValueError("et must be at least dt")
         if self.et is not None and self.et > self.horizon:
             raise ValueError("et must be at most horizon")
+        if self.max_size is not None and self.max_size < 2:
+            raise ValueError("max_size must be at least 2")
 
     @classmethod
     def from_dict(cls, data: dict[str, object]) -> SimulationConfig:
@@ -195,7 +201,10 @@ class SimulationConfig:
             if not isinstance(listed, list):
                 raise ValueError("modes must be a list")
             modes = tuple(_mode_from_dict(item) for item in listed)
-        return cls(horizon, step, et, commit, assigner, modes)
+        max_size = None
+        if "max_size" in mapping and mapping["max_size"] is not None:
+            max_size = _count(mapping["max_size"], "max_size")
+        return cls(horizon, step, et, commit, assigner, modes, max_size)
 
     @classmethod
     def from_simulator(cls, simulator: Simulator) -> SimulationConfig:
@@ -212,6 +221,7 @@ class SimulationConfig:
             commit=simulator.commit,
             assigner=assigner,
             modes=modes,
+            max_size=simulator.max_size,
         )
 
     def to_dict(self) -> dict[str, object]:
@@ -229,14 +239,17 @@ class SimulationConfig:
                     "filters": record["filters"],
                 }
             modes.append(record)
-        return {
+        record: dict[str, object] = {
             "horizon": self.horizon,
             "dt": self.dt,
             "et": self.et,
             "commit": self.commit,
             "assigner": self.assigner,
-            "modes": modes,
         }
+        if self.max_size is not None:
+            record["max_size"] = self.max_size
+        record["modes"] = modes
+        return record
 
     def with_horizon(self, horizon: float) -> SimulationConfig:
         """Return a copy that uses ``horizon`` and keeps the other settings."""
@@ -247,6 +260,7 @@ class SimulationConfig:
             commit=self.commit,
             assigner=self.assigner,
             modes=self.modes,
+            max_size=self.max_size,
         )
 
     def build(
@@ -284,6 +298,7 @@ class SimulationConfig:
                 dt=self.dt,
                 et=self.et,
                 commit=self.commit,
+                max_size=self.max_size,
             )
         return Simulator(
             cluster,
@@ -293,6 +308,7 @@ class SimulationConfig:
             dt=self.dt,
             et=self.et,
             commit=self.commit,
+            max_size=self.max_size,
         )
 
 
@@ -440,3 +456,10 @@ def _real(value: object, label: str) -> float:
     if isinstance(value, bool) or not isinstance(value, int | float):
         raise ValueError(f"{label} must be a number")
     return float(value)
+
+
+def _count(value: object, label: str) -> int:
+    """Return ``value`` as an integer, rejecting booleans and fractional numbers."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{label} must be an integer")
+    return value

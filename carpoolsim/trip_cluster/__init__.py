@@ -2,6 +2,8 @@
 
 from carpoolsim.trip_cluster.cluster import TripCluster
 from carpoolsim.trip_cluster.cluster import minutes_of_day
+from carpoolsim.trip_cluster.grouping import combine_trips
+from carpoolsim.trip_cluster.grouping import group_trips
 from carpoolsim.trip_cluster.filters.departure import FilterDepartureTime
 from carpoolsim.trip_cluster.filters.destination import FilterDestinationEuclideanDistance
 from carpoolsim.trip_cluster.filters.dropoff import FilterDropoffEuclideanDistance
@@ -37,5 +39,7 @@ __all__ = [
     "PnrPlan",
     "Shareability",
     "TripCluster",
+    "combine_trips",
+    "group_trips",
     "minutes_of_day",
 ]

@@ -41,6 +41,8 @@ Trips and filters
    :toctree: generated
 
    TripCluster
+   group_trips
+   combine_trips
    minutes_of_day
    Shareability
    FilterDepartureTime

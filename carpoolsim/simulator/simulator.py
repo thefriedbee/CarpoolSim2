@@ -10,6 +10,7 @@ import numpy as np
 from carpoolsim.optimizer import Assigner
 from carpoolsim.simulator.pool import Pool
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.grouping import group_trips
 from carpoolsim.trip_cluster.share import Filter
 from carpoolsim.trip_cluster.share import Shareability
 
@@ -50,10 +51,13 @@ class Simulator:
     clock ``t`` the pool holds every still-unmatched traveler whose departure
     lies in ``[t, t + horizon]``. Modes then run in the order they were given.
     Each mode copies the travelers who are still unmatched into a cluster, in
-    departure order, and applies its own filters. The copy keeps their
-    traveler ids. The assigner commits pairs of those ids, and both members
-    leave the pool before the next mode runs. A later mode can match only
-    the travelers the earlier modes left.
+    departure order. When ``max_size`` is set, that cluster is cut into
+    groups of at most ``max_size`` similar trips, and each group is filtered
+    and assigned on its own. The pairs from those groups are then committed
+    together. When ``max_size`` is omitted, the cluster stays one group. The
+    copy keeps their traveler ids. Both members of a committed pair leave
+    the pool before the next mode runs. A later mode can match only the
+    travelers the earlier modes left.
     A traveler who is still unmatched after every mode, and whose departure
     the clock has passed, is recorded as solo.
 
@@ -83,6 +87,7 @@ class Simulator:
         et: float | None = None,
         commit: str = "window",
         modes: Sequence[tuple[str, Sequence[Filter]]] | None = None,
+        max_size: int | None = None,
     ) -> None:
         self.cluster = cluster
         self.assigner = assigner
@@ -91,6 +96,7 @@ class Simulator:
         self.dt = float(dt)
         self.et = None if et is None else float(et)
         self.commit = commit
+        self.max_size = None if max_size is None else _count(max_size, "max_size")
         self.matches: list[Match] = []
         self.solos: list[Solo] = []
         if self.dt <= 0:
@@ -103,6 +109,8 @@ class Simulator:
             raise ValueError("et must be at most horizon")
         if commit not in {"window", "step"}:
             raise ValueError("commit must be 'window' or 'step'")
+        if self.max_size is not None and self.max_size < 2:
+            raise ValueError("max_size must be at least 2")
 
     def run(self) -> None:
         """Step the clock until every traveler is matched or has departed."""
@@ -127,16 +135,11 @@ class Simulator:
         for name, filters in self.modes:
             if not pool.active:
                 return
-            ids = pool.ids_in_order()
-            share = Shareability(_subset(self.cluster, ids))
-            if self.et is not None:
-                _limit_drivers(share.cluster, share.matrix, t, self.et)
-            share.apply(*filters)
-            known = {int(traveler) for traveler in share.cluster.ids}
-            pairs = [
-                _checked_pair(pair, known)
-                for pair in self.assigner(share.matrix, share.cluster.ids)
-            ]
+            active = _subset(self.cluster, pool.ids_in_order())
+            groups = [active] if self.max_size is None else group_trips(active, self.max_size)
+            pairs: list[tuple[int, int]] = []
+            for group in groups:
+                pairs.extend(_pairs(group, filters, self.assigner, t, self.et))
             _reject_repeated_travelers(pairs)
             for driver, rider in pairs:
                 if self.commit == "step" and not _expires_this_step(
@@ -169,6 +172,31 @@ def _mode_list(
     if not named:
         raise ValueError("at least one mode is required")
     return tuple(named)
+
+
+def _pairs(
+    cluster: TripCluster,
+    filters: Sequence[Filter],
+    assigner: Assigner,
+    t: float,
+    et: float | None,
+) -> list[tuple[int, int]]:
+    """Filter one group and return the assigner's pairs of traveler ids."""
+    share = Shareability(cluster)
+    if et is not None:
+        _limit_drivers(share.cluster, share.matrix, t, et)
+    share.apply(*filters)
+    known = {int(traveler) for traveler in share.cluster.ids}
+    return [
+        _checked_pair(pair, known) for pair in assigner(share.matrix, share.cluster.ids)
+    ]
+
+
+def _count(value: object, label: str) -> int:
+    """Return ``value`` as an integer, rejecting booleans and fractional numbers."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{label} must be an integer")
+    return value
 
 
 def _subset(cluster: TripCluster, ids: list[int]) -> TripCluster:

@@ -46,7 +46,7 @@ simulator.run()
 
 Times are minutes. Distances such as `r1` and `r_p` are kilometers. A ratio such as `gamma_1` compares the carpool tour with the driver's own trip.
 
-`horizon` is how far ahead the pool looks. `dt` is the clock step. `et`, when set, limits who may drive at the current step. `commit` is `window` or `step`. `assigner` is `matching`, `greedy`, or `bipartite`.
+`horizon` is how far ahead the pool looks. `dt` is the clock step. `et`, when set, limits who may drive at the current step. `commit` is `window` or `step`. `assigner` is `matching`, `greedy`, or `bipartite`. `max_size`, when set, is the most travelers one matching group may hold. The current pool is cut by trip similarity until every group is that small. Omit it and the pool stays one group.
 
 `modes` is an ordered list of pipelines. Each mode has a `name` and a `filters` list. A park-and-ride mode also has `r_p`, the farthest an origin may be from a lot. The filter class names and their settings are the public filter classes in the API reference.
 
