@@ -43,3 +43,6 @@ temp/
 .vscode/
 *.swp
 *~
+
+
+paper_analysis/
