@@ -59,14 +59,40 @@ class MemoizedRoadRouter(RoadRouter):
         return self._nearest_node_cache[key]
 
 
+def _changed_config(
+    baseline: dict,
+    parameter: str,
+    value: object,
+    label: str,
+) -> tuple[dict, object]:
+    """Return a validated config and the previous leaf after one change."""
+    config = copy.deepcopy(baseline)
+    target = config
+    parts = parameter.split(".")
+    for part in parts[:-1]:
+        target = target[int(part)] if isinstance(target, list) else target[part]
+    key = int(parts[-1]) if isinstance(target, list) else parts[-1]
+    previous = target[key]
+    if previous == value:
+        raise ValueError(f"experiment {label} does not change {parameter}")
+    target[key] = value
+    return SimulationConfig.from_dict(config).to_dict(), previous
+
+
 def experiment_specs(root: str | Path) -> list[dict[str, object]]:
-    """Return the one-factor runs, then one joint baseline.
+    """Return the one-factor screen, the joint baseline, then level sweeps.
 
     The first 20 runs are two baselines and nine changes per mode. Each of
     those starts from its mode's current ``config/gt_2022*.yaml`` file. The
-    last run places direct carpool before park-and-ride and keeps each mode's
+    next run places direct carpool before park-and-ride and keeps each mode's
     baseline filters. The two mode files must already share one clock and
-    assigner, because a joint run has one of each.
+    assigner, because a joint run has one of each. Those 21 ids stay fixed.
+
+    Later runs fill five-level curves for the controls that moved matching
+    size in the screen. Each new run still changes one leaf from its mode
+    baseline. Horizon, the Euclidean detour ratio, and the assigner stay at
+    the original two points. The baseline value and the screen value are not
+    repeated.
 
     Times are minutes; ``r1`` and ``r_p`` are kilometers; the other filter
     controls are ratios. A larger ``dt`` checks the pool less frequently.
@@ -95,7 +121,51 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
         ("gamma_2_0p75", "modes.0.filters.5.gamma_2", 0.75, "Require at least a 0.75 shared-time ratio."),
         ("delta2_5", "modes.0.filters.6.delta2", 5, "Limit waiting at the lot to 5 minutes."),
     ]
+    direct_sweep = [
+        ("dt_1", "dt", 1, "Check the pool every 1 minute."),
+        ("dt_3", "dt", 3, "Check the pool every 3 minutes."),
+        ("dt_15", "dt", 15, "Check the pool every 15 minutes."),
+        ("delta1_10", "modes.0.filters.0.delta1", 10, "Set departure separation to 10 minutes."),
+        ("delta1_20", "modes.0.filters.0.delta1", 20, "Set departure separation to 20 minutes."),
+        ("delta1_30", "modes.0.filters.0.delta1", 30, "Set departure separation to 30 minutes."),
+        ("r1_1", "modes.0.filters.1.r1", 1, "Set origin separation to 1 kilometer."),
+        ("r1_10", "modes.0.filters.1.r1", 10, "Set origin separation to 10 kilometers."),
+        ("r1_15", "modes.0.filters.1.r1", 15, "Set origin separation to 15 kilometers."),
+        ("gamma_1_1p1", "modes.0.filters.3.gamma_1", 1.1, "Set the driving-time ratio to 1.1."),
+        ("gamma_1_2", "modes.0.filters.3.gamma_1", 2, "Set the driving-time ratio to 2."),
+        ("gamma_1_2p5", "modes.0.filters.3.gamma_1", 2.5, "Set the driving-time ratio to 2.5."),
+        ("gamma_2_0p25", "modes.0.filters.4.gamma_2", 0.25, "Set the shared-time ratio to 0.25."),
+        ("gamma_2_0p9", "modes.0.filters.4.gamma_2", 0.9, "Set the shared-time ratio to 0.9."),
+        ("gamma_2_1", "modes.0.filters.4.gamma_2", 1, "Set the shared-time ratio to 1."),
+        ("delta2_0", "modes.0.filters.5.delta2", 0, "Set passenger waiting to 0 minutes."),
+        ("delta2_15", "modes.0.filters.5.delta2", 15, "Set passenger waiting to 15 minutes."),
+        ("delta2_20", "modes.0.filters.5.delta2", 20, "Set passenger waiting to 20 minutes."),
+    ]
+    pnr_sweep = [
+        ("dt_1", "dt", 1, "Check the pool every 1 minute."),
+        ("dt_3", "dt", 3, "Check the pool every 3 minutes."),
+        ("dt_15", "dt", 15, "Check the pool every 15 minutes."),
+        ("delta1_10", "modes.0.filters.0.delta1", 10, "Set departure separation to 10 minutes."),
+        ("delta1_20", "modes.0.filters.0.delta1", 20, "Set departure separation to 20 minutes."),
+        ("delta1_30", "modes.0.filters.0.delta1", 30, "Set departure separation to 30 minutes."),
+        ("r_p_1", "modes.0.r_p", 1, "Set origin-to-lot reach to 1 kilometer."),
+        ("r_p_10", "modes.0.r_p", 10, "Set origin-to-lot reach to 10 kilometers."),
+        ("r_p_15", "modes.0.r_p", 15, "Set origin-to-lot reach to 15 kilometers."),
+        ("mu_3_0p1", "modes.0.filters.3.mu_3", 0.1, "Set the passenger access-distance ratio to 0.1."),
+        ("mu_3_0p75", "modes.0.filters.3.mu_3", 0.75, "Set the passenger access-distance ratio to 0.75."),
+        ("mu_3_1", "modes.0.filters.3.mu_3", 1, "Set the passenger access-distance ratio to 1."),
+        ("gamma_1_1p1", "modes.0.filters.4.gamma_1", 1.1, "Set the driving-time ratio to 1.1."),
+        ("gamma_1_2", "modes.0.filters.4.gamma_1", 2, "Set the driving-time ratio to 2."),
+        ("gamma_1_2p5", "modes.0.filters.4.gamma_1", 2.5, "Set the driving-time ratio to 2.5."),
+        ("gamma_2_0p25", "modes.0.filters.5.gamma_2", 0.25, "Set the shared-time ratio to 0.25."),
+        ("gamma_2_0p9", "modes.0.filters.5.gamma_2", 0.9, "Set the shared-time ratio to 0.9."),
+        ("gamma_2_1", "modes.0.filters.5.gamma_2", 1, "Set the shared-time ratio to 1."),
+        ("delta2_0", "modes.0.filters.6.delta2", 0, "Set waiting at the lot to 0 minutes."),
+        ("delta2_15", "modes.0.filters.6.delta2", 15, "Set waiting at the lot to 15 minutes."),
+        ("delta2_20", "modes.0.filters.6.delta2", 20, "Set waiting at the lot to 20 minutes."),
+    ]
     specs: list[dict[str, object]] = []
+    baselines: dict[str, tuple[str, dict]] = {}
     for mode, filename, variants in (
         ("direct", "gt_2022.yaml", direct),
         ("pnr", "gt_2022_pnr.yaml", pnr),
@@ -114,18 +184,9 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
                 "config": copy.deepcopy(baseline),
             }
         )
+        baselines[mode] = (baseline_id, baseline)
         for suffix, parameter, value, description in variants:
-            config = copy.deepcopy(baseline)
-            target = config
-            parts = parameter.split(".")
-            for part in parts[:-1]:
-                target = target[int(part)] if isinstance(target, list) else target[part]
-            key = int(parts[-1]) if isinstance(target, list) else parts[-1]
-            previous = target[key]
-            if previous == value:
-                raise ValueError(f"experiment {mode}/{suffix} does not change {parameter}")
-            target[key] = value
-            config = SimulationConfig.from_dict(config).to_dict()
+            config, previous = _changed_config(baseline, parameter, value, f"{mode}/{suffix}")
             specs.append(
                 {
                     "experiment_id": f"e{len(specs) + 1:02d}_{mode}_{suffix}",
@@ -139,6 +200,22 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
                 }
             )
     specs.append(_both_direct_first(root))
+    for mode, variants in (("direct", direct_sweep), ("pnr", pnr_sweep)):
+        baseline_id, baseline = baselines[mode]
+        for suffix, parameter, value, description in variants:
+            config, previous = _changed_config(baseline, parameter, value, f"{mode}/{suffix}")
+            specs.append(
+                {
+                    "experiment_id": f"e{len(specs) + 1:02d}_{mode}_{suffix}",
+                    "mode": mode,
+                    "baseline_id": baseline_id,
+                    "parameter": parameter,
+                    "baseline_value": previous,
+                    "value": value,
+                    "description": description,
+                    "config": config,
+                }
+            )
     return specs
 
 

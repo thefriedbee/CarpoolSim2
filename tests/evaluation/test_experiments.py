@@ -85,9 +85,14 @@ def leaves(value, prefix="") -> dict:
 def test_plan_has_valid_independent_configs() -> None:
     specs = experiment_specs(ROOT)
 
-    assert len(specs) == 21
-    assert len({spec["experiment_id"] for spec in specs}) == 21
-    assert [spec["mode"] for spec in specs] == ["direct"] * 10 + ["pnr"] * 10 + ["both"]
+    assert len(specs) == 60
+    assert len({spec["experiment_id"] for spec in specs}) == 60
+    assert [spec["mode"] for spec in specs] == (
+        ["direct"] * 10 + ["pnr"] * 10 + ["both"] + ["direct"] * 18 + ["pnr"] * 21
+    )
+    assert specs[20]["experiment_id"] == "e21_both_direct_first"
+    assert specs[21]["experiment_id"] == "e22_direct_dt_1"
+    assert specs[-1]["experiment_id"] == "e60_pnr_delta2_20"
     by_id = {spec["experiment_id"]: spec for spec in specs}
     direct = load_config(ROOT / "config" / "gt_2022.yaml").to_dict()
     pnr = load_config(ROOT / "config" / "gt_2022_pnr.yaml").to_dict()
@@ -133,6 +138,46 @@ def test_plan_covers_the_clock_and_each_numeric_filter() -> None:
     specs[1]["config"]["modes"][0]["filters"][0]["delta1"] = -123
     assert specs[0]["config"] == original
     assert experiment_specs(ROOT)[0]["config"] == original
+
+
+def _levels(specs: list[dict], mode: str, parameter: str) -> set[float]:
+    baseline = next(spec for spec in specs if spec["mode"] == mode and spec["parameter"] == "baseline")
+    values = [leaves(baseline["config"])[parameter]]
+    values.extend(
+        spec["value"] for spec in specs if spec["mode"] == mode and spec["parameter"] == parameter
+    )
+    return {float(value) for value in values}
+
+
+def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> None:
+    specs = experiment_specs(ROOT)
+    five = {
+        ("direct", "dt"): {1, 3, 5, 10, 15},
+        ("direct", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
+        ("direct", "modes.0.filters.1.r1"): {1, 2.5, 5, 10, 15},
+        ("direct", "modes.0.filters.3.gamma_1"): {1.1, 1.25, 1.5, 2, 2.5},
+        ("direct", "modes.0.filters.4.gamma_2"): {0.25, 0.5, 0.75, 0.9, 1},
+        ("direct", "modes.0.filters.5.delta2"): {0, 5, 10, 15, 20},
+        ("pnr", "dt"): {1, 3, 5, 10, 15},
+        ("pnr", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
+        ("pnr", "modes.0.r_p"): {1, 2.5, 5, 10, 15},
+        ("pnr", "modes.0.filters.3.mu_3"): {0.1, 0.25, 0.5, 0.75, 1},
+        ("pnr", "modes.0.filters.4.gamma_1"): {1.1, 1.25, 1.5, 2, 2.5},
+        ("pnr", "modes.0.filters.5.gamma_2"): {0.25, 0.5, 0.75, 0.9, 1},
+        ("pnr", "modes.0.filters.6.delta2"): {0, 5, 10, 15, 20},
+    }
+    for (mode, parameter), expected in five.items():
+        assert _levels(specs, mode, parameter) == expected
+    for mode, parameter in (
+        ("direct", "horizon"),
+        ("direct", "modes.0.filters.2.mu_1"),
+        ("pnr", "horizon"),
+        ("pnr", "modes.0.filters.2.mu_1"),
+    ):
+        found = [spec for spec in specs if spec["mode"] == mode and spec["parameter"] == parameter]
+        assert len(found) == 1
+    assigners = [spec for spec in specs if spec["mode"] == "direct" and spec["parameter"] == "assigner"]
+    assert [spec["value"] for spec in assigners] == ["greedy"]
 
 
 def completed_run(trips=3, matched=True):

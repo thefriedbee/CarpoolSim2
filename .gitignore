@@ -29,6 +29,7 @@ notebooks/
 data_inputs/**
 !data_inputs/**/
 !data_inputs/**/README.md
+!data_inputs/trip_mass/build_sov_trips.py
 data_outputs/
 
 # Local scratch

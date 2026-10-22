@@ -80,11 +80,13 @@ def experiment_notebook(spec):
         else f"Only `{spec['parameter']}` changes: **{spec['baseline_value']} → {spec['value']}**."
     )
     joint = spec["mode"] == "both"
-    overview = (
-        "This run is listed with the other experiments in [summary.ipynb](summary.ipynb)."
-        if joint
-        else "View all 20 runs in [summary.ipynb](summary.ipynb)."
-    )
+    number = int(str(experiment_id)[1:3])
+    if joint:
+        overview = "This run is listed with the other experiments in [summary.ipynb](summary.ipynb)."
+    elif number <= 20:
+        overview = "View all 20 runs in [summary.ipynb](summary.ipynb)."
+    else:
+        overview = "View every run in [summary.ipynb](summary.ipynb)."
     prepare_note = (
         "This cell loads every trip, the saved parking lots, and a fresh road router. Direct carpool runs first and removes the travelers it matches. Park-and-ride then matches only the travelers direct left."
         if joint
@@ -229,7 +231,7 @@ def summary_notebook():
         [
             markdown('''# Compare the experiment runs
 
-The plan contains ten direct-carpool runs, ten PNR runs, and one joint run. Each single-mode variant changes exactly one scalar setting relative to its own mode's baseline. The joint run, `e21_both_direct_first`, keeps both baseline filter sets and runs direct carpool before park-and-ride. Every run uses the full Georgia Tech 2022 trip file and the same network and lot files.
+The plan keeps the original ten direct-carpool runs, ten PNR runs, and one joint run (`e01` through `e21`). It then adds three levels for each sensitive control, so those controls have five values once the baseline and the original screen value are included. Horizon, the Euclidean detour ratio, and the assigner stay at two points. Each single-mode variant changes exactly one scalar setting relative to its own mode's baseline. The joint run, `e21_both_direct_first`, keeps both baseline filter sets and runs direct carpool before park-and-ride. Every run uses the full Georgia Tech 2022 trip file and the same network and lot files.
 
 Run the experiment notebooks first, or use `python scripts/run_experiments.py --all`. This overview reads saved outputs and never reruns a simulation. Missing, incomplete, or stale runs stay visible in the status table. Runtime includes only `simulator.run()`; data loading, scoring, exporting, and charts are excluded.
 
@@ -404,7 +406,7 @@ def main():
     write_notebook(notebook_dir / "summary.ipynb", summary_notebook(), args.overwrite_executed)
     manifest = {
         "schema_version": 1,
-        "design": "one scalar change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride",
+        "design": "one scalar change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls then add three levels so each has five values",
         "timing": "wall time of simulator.run() only; one fresh process and exact nearest-node lookup cache per notebook",
         "repetitions": 1,
         "inputs": {"trips": "data_inputs/trip/gt_2022_off_campus_trips.csv", "network": "data_inputs/network", "lots": "data_inputs/network/lots.gpkg"},

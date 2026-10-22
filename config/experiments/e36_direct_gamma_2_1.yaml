@@ -1,0 +1,22 @@
+# Set the shared-time ratio to 1.
+# Times are minutes; distances are kilometers; other numeric filters are ratios.
+horizon: 15.0
+dt: 5.0
+et: null
+commit: window
+assigner: matching
+modes:
+- name: direct
+  filters:
+  - filter: FilterDepartureTime
+    delta1: 15.0
+  - filter: FilterOriginEuclideanDistance
+    r1: 5.0
+  - filter: FilterRerouteEuclideanDistance
+    mu_1: 1.5
+  - filter: FilterRerouteTravelTime
+    gamma_1: 1.5
+  - filter: FilterSharedTravelTime
+    gamma_2: 1.0
+  - filter: FilterPassengerWaitTime
+    delta2: 10.0
