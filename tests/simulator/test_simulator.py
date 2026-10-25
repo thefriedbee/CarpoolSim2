@@ -3,10 +3,15 @@
 import numpy as np
 import pytest
 
+from carpoolsim.network_prep.router import RoadRouter
 from carpoolsim.optimizer import GreedyAssigner
 from carpoolsim.simulator import Simulator
 from carpoolsim.trip_cluster import FilterDepartureTime
+from carpoolsim.trip_cluster import FilterPnrAccess
+from carpoolsim.trip_cluster import FilterPnrRerouteTravelTime
+from carpoolsim.trip_cluster import PnrPlan
 from carpoolsim.trip_cluster import TripCluster
+from tests.conftest import Network
 
 
 def cluster_at(*minutes: float) -> TripCluster:
@@ -501,3 +506,73 @@ def test_max_size_keeps_a_pair_inside_its_own_group() -> None:
     assert [(match.driver, match.rider) for match in open_pool.matches] == [(0, 3), (1, 2)]
     assert [(match.driver, match.rider) for match in grouped.matches] == [(0, 1), (2, 3)]
     assert grouped.solos == []
+
+
+def _committed(simulator: Simulator) -> list[tuple[int, int, float, str]]:
+    """Return committed pairs as ``(driver, rider, clock, mode)``."""
+    return [(match.driver, match.rider, match.t, match.mode) for match in simulator.matches]
+
+
+def test_workers_must_be_an_integer_of_at_least_one() -> None:
+    cluster = cluster_at(0)
+
+    with pytest.raises(ValueError, match="workers must be at least 1"):
+        Simulator(cluster, GreedyAssigner(), workers=0)
+    with pytest.raises(ValueError, match="workers must be an integer"):
+        Simulator(cluster, GreedyAssigner(), workers=True)
+
+
+def test_workers_match_the_same_pairs_as_one_process() -> None:
+    origins = np.array([0.0, 0.0, 50_000.0, 50_000.0, 0.0, 0.0, 50_000.0, 50_000.0])
+    departures = np.array([0.0, 0.0, 0.0, 0.0, 40.0, 40.0, 40.0, 40.0])
+    zeros = np.zeros(8)
+    cluster = TripCluster(origins, zeros, origins.copy(), zeros.copy(), departures)
+    serial = Simulator(cluster, GreedyAssigner(), horizon=15, dt=5, max_size=2)
+    parallel = Simulator(cluster, GreedyAssigner(), horizon=15, dt=5, max_size=2, workers=2)
+
+    serial.run()
+    parallel.run()
+
+    assert _committed(parallel) == _committed(serial)
+    assert len(parallel.matches) == 4
+    assert parallel.solos == []
+
+
+@pytest.mark.parametrize("cached", [False, True])
+def test_workers_keep_the_router_and_plan_in_each_process(
+    line_network: Network,
+    cached: bool,
+) -> None:
+    nodes, edges = line_network
+    router = RoadRouter(nodes, edges, cached=cached, max_nodes=3)
+    origins = np.array([0.0, 1000.0, 0.0, 1000.0])
+    northing = np.array([0.0, 0.0, 100_000.0, 100_000.0])
+    destinations = np.array([4000.0, 3000.0, 4000.0, 3000.0])
+    cluster = TripCluster(origins, northing, destinations, northing.copy(), np.zeros(4))
+
+    def run(workers: int) -> Simulator:
+        plan = PnrPlan(np.array([0.0]), np.array([0.0]), 5.0)
+        filters = (
+            FilterPnrAccess(plan),
+            FilterPnrRerouteTravelTime(plan, router, 1.5),
+        )
+        simulator = Simulator(
+            cluster,
+            GreedyAssigner(),
+            filters=filters,
+            horizon=15,
+            dt=5,
+            max_size=2,
+            workers=workers,
+        )
+        simulator.run()
+        return simulator
+
+    serial = run(1)
+    parallel = run(2)
+
+    assert _committed(parallel) == _committed(serial)
+    assert len(parallel.matches) == 1
+    assert [(solo.traveler, solo.t) for solo in parallel.solos] == [
+        (solo.traveler, solo.t) for solo in serial.solos
+    ]

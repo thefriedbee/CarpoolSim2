@@ -33,6 +33,8 @@ def test_defaults_match_an_empty_direct_run() -> None:
     assert isinstance(simulator.assigner, MatchingAssigner)
     assert simulator.modes == (("direct", ()),)
     assert simulator.max_size == 100
+    assert simulator.workers == 1
+    assert "workers" not in SimulationConfig().to_dict()
 
 
 def test_yaml_and_json_load_the_same_settings(tmp_path: Path) -> None:
@@ -259,4 +261,25 @@ def test_max_size_is_kept_when_set_and_omitted_when_absent(tmp_path: Path) -> No
         SimulationConfig(max_size=True)
     path.write_text("max_size: 2.5\n")
     with pytest.raises(ValueError, match="max_size must be an integer"):
+        load_config(path)
+
+
+def test_workers_defaults_to_one_and_is_kept_when_set(tmp_path: Path) -> None:
+    path = tmp_path / "run.yaml"
+    path.write_text("workers: 4\nmodes:\n  - name: direct\n    filters: []\n")
+    loaded = load_config(path)
+    simulator = loaded.build(cluster())
+
+    assert loaded.workers == 4
+    assert simulator.workers == 4
+    assert loaded.to_dict()["workers"] == 4
+    assert SimulationConfig.from_simulator(simulator).to_dict() == loaded.to_dict()
+    assert loaded.with_horizon(30).workers == 4
+
+    with pytest.raises(ValueError, match="workers must be at least 1"):
+        SimulationConfig(workers=0)
+    with pytest.raises(ValueError, match="workers must be an integer"):
+        SimulationConfig(workers=True)
+    path.write_text("workers: 2.5\n")
+    with pytest.raises(ValueError, match="workers must be an integer"):
         load_config(path)

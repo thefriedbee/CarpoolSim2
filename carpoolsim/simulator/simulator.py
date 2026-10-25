@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import operator
 from collections.abc import Sequence
+from multiprocessing import get_context
+from multiprocessing.pool import Pool as ProcessPool
 
 import numpy as np
 
@@ -17,6 +19,23 @@ from carpoolsim.trip_cluster.share import Shareability
 
 # Most travelers kept in one spatial group. None leaves the pool as one group.
 DEFAULT_MAX_SIZE = 100
+
+# One group handed to a worker: mode name, the six trip columns, clock, and et.
+_GroupTask = tuple[
+    str,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    float,
+    float | None,
+]
+
+# Filled once, when a worker starts. The travel-time caches live on the filters.
+_worker_filters: dict[str, tuple[Filter, ...]] = {}
+_worker_assigner: Assigner | None = None
 
 
 class Match:
@@ -59,9 +78,13 @@ class Simulator:
     similar trips, and each group is filtered and assigned on its own. The
     pairs from those groups are then committed together. The default group
     holds 100 travelers. Pass ``None`` and the cluster stays one group. The
-    copy keeps their traveler ids. Both members of a committed pair leave
-    the pool before the next mode runs. A later mode can match only the
-    travelers the earlier modes left.
+    copy keeps their traveler ids. ``workers`` is how many processes filter
+    those groups. The default is 1, so they run in this process. A larger
+    number starts one process pool for the whole run. Each worker receives
+    the modes and the assigner once, including the router those filters hold,
+    and then one group at a time. Pairs come back in group order. Both
+    members of a committed pair leave the pool before the next mode runs. A
+    later mode can match only the travelers the earlier modes left.
     A traveler who is still unmatched after every mode, and whose departure
     the clock has passed, is recorded as solo.
 
@@ -92,6 +115,7 @@ class Simulator:
         commit: str = "window",
         modes: Sequence[tuple[str, Sequence[Filter]]] | None = None,
         max_size: int | None = DEFAULT_MAX_SIZE,
+        workers: int = 1,
     ) -> None:
         self.cluster = cluster
         self.assigner = assigner
@@ -101,6 +125,7 @@ class Simulator:
         self.et = None if et is None else float(et)
         self.commit = commit
         self.max_size = None if max_size is None else _count(max_size, "max_size")
+        self.workers = _count(workers, "workers")
         self.matches: list[Match] = []
         self.solos: list[Solo] = []
         if self.dt <= 0:
@@ -115,6 +140,8 @@ class Simulator:
             raise ValueError("commit must be 'window' or 'step'")
         if self.max_size is not None and self.max_size < 2:
             raise ValueError("max_size must be at least 2")
+        if self.workers < 1:
+            raise ValueError("workers must be at least 1")
 
     def run(self) -> None:
         """Step the clock until every traveler is matched or has departed."""
@@ -122,6 +149,20 @@ class Simulator:
         self.solos = []
         if len(self.cluster) == 0:
             return
+        if self.workers == 1:
+            self._advance(None)
+            return
+        # Spawn so each worker gets its own router. The cached router writes
+        # its overlay during a search.
+        with get_context("spawn").Pool(
+            processes=self.workers,
+            initializer=_init_worker,
+            initargs=(self.modes, self.assigner),
+        ) as processes:
+            self._advance(processes)
+
+    def _advance(self, processes: ProcessPool | None) -> None:
+        """Step the clock, matching the active window at each step."""
         pool = Pool(self.cluster.t, self.cluster.ids)
         t = float(np.min(self.cluster.t) - self.horizon)
         while True:
@@ -131,19 +172,17 @@ class Simulator:
             if not pool.waiting and not pool.active:
                 break
             if pool.active:
-                self._assign(pool, t)
+                self._assign(pool, t, processes)
             t += self.dt
 
-    def _assign(self, pool: Pool, t: float) -> None:
+    def _assign(self, pool: Pool, t: float, processes: ProcessPool | None) -> None:
         """Run each mode on the travelers the earlier modes left unmatched."""
         for name, filters in self.modes:
             if not pool.active:
                 return
             active = _subset(self.cluster, pool.ids_in_order())
             groups = [active] if self.max_size is None else group_trips(active, self.max_size)
-            pairs: list[tuple[int, int]] = []
-            for group in groups:
-                pairs.extend(_pairs(group, filters, self.assigner, t, self.et))
+            pairs = _pairs_for_groups(name, groups, filters, self.assigner, t, self.et, processes)
             _reject_repeated_travelers(pairs)
             for driver, rider in pairs:
                 if self.commit == "step" and not _expires_this_step(
@@ -176,6 +215,63 @@ def _mode_list(
     if not named:
         raise ValueError("at least one mode is required")
     return tuple(named)
+
+
+def _init_worker(
+    modes: tuple[tuple[str, tuple[Filter, ...]], ...],
+    assigner: Assigner,
+) -> None:
+    """Keep the modes and the assigner for every group this process matches.
+
+    The pool sends them once, when the worker starts. Each filter keeps its
+    own travel-time cache. Filters in one park-and-ride mode keep sharing
+    the one plan they were given.
+    """
+    global _worker_assigner
+    _worker_filters.clear()
+    _worker_filters.update(dict(modes))
+    _worker_assigner = assigner
+
+
+def _match_group(task: _GroupTask) -> list[tuple[int, int]]:
+    """Filter one group with this worker's modes and return its pairs."""
+    name, ox, oy, dx, dy, departures, ids, t, et = task
+    if _worker_assigner is None:
+        raise RuntimeError("matching worker was not initialized")
+    cluster = TripCluster(ox, oy, dx, dy, departures, ids)
+    return _pairs(cluster, _worker_filters[name], _worker_assigner, t, et)
+
+
+def _pairs_for_groups(
+    name: str,
+    groups: Sequence[TripCluster],
+    filters: Sequence[Filter],
+    assigner: Assigner,
+    t: float,
+    et: float | None,
+    processes: ProcessPool | None,
+) -> list[tuple[int, int]]:
+    """Filter every group and return the pairs in group order.
+
+    ``processes`` is the warm pool. When it is omitted, the groups run here.
+    """
+    if processes is None:
+        pairs: list[tuple[int, int]] = []
+        for group in groups:
+            pairs.extend(_pairs(group, filters, assigner, t, et))
+        return pairs
+    tasks = [_group_task(name, group, t, et) for group in groups]
+    if not tasks:
+        return []
+    pairs = []
+    for result in processes.map(_match_group, tasks, chunksize=1):
+        pairs.extend(result)
+    return pairs
+
+
+def _group_task(name: str, group: TripCluster, t: float, et: float | None) -> _GroupTask:
+    """Pack one group for a worker. The router stays in the worker."""
+    return (name, group.ox, group.oy, group.dx, group.dy, group.t, group.ids, t, et)
 
 
 def _pairs(

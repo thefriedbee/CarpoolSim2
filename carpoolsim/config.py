@@ -37,7 +37,7 @@ _ASSIGNERS = {
     "bipartite": BipartiteAssigner,
 }
 _ASSIGNER_NAMES = {factory: name for name, factory in _ASSIGNERS.items()}
-_CONFIG_KEYS = {"horizon", "dt", "et", "commit", "assigner", "max_size", "modes"}
+_CONFIG_KEYS = {"horizon", "dt", "et", "commit", "assigner", "max_size", "workers", "modes"}
 _MODE_KEYS = {"name", "r_p", "filters"}
 
 
@@ -135,13 +135,15 @@ class SimulationConfig:
     ``assigner`` is ``"matching"``, ``"greedy"``, or ``"bipartite"``.
     ``max_size`` is the most travelers one matching group may hold. The pool
     is cut by trip similarity until every group is that small. The default is
-    100. ``null`` leaves each pool as one group.
+    100. ``null`` leaves each pool as one group. ``workers`` is how many
+    processes match those groups. The default is 1, which matches them in
+    the calling process. A file that omits it keeps that default.
 
     The default is a 15-minute horizon, a 5-minute step, no ``et``, window
-    commit, the maximum-cardinality matcher, groups of 100, and one empty
-    mode named ``"direct"``. A file replaces whichever of these it sets. A
-    single mode with an empty name is the unnamed filter list ``Simulator``
-    uses when it is constructed without modes.
+    commit, the maximum-cardinality matcher, groups of 100, one process, and
+    one empty mode named ``"direct"``. A file replaces whichever of these it
+    sets. A single mode with an empty name is the unnamed filter list
+    ``Simulator`` uses when it is constructed without modes.
 
     ``build`` turns this into a ``Simulator``. Travel-time filters receive
     ``router``. A park-and-ride mode receives one ``PnrPlan`` built from
@@ -157,6 +159,7 @@ class SimulationConfig:
         assigner: str = "matching",
         modes: Sequence[ModeConfig] | None = None,
         max_size: int | None = DEFAULT_MAX_SIZE,
+        workers: int = 1,
     ) -> None:
         self.horizon = _real(horizon, "horizon")
         self.dt = _real(dt, "dt")
@@ -168,6 +171,7 @@ class SimulationConfig:
             raise ValueError("assigner must be 'matching', 'greedy', or 'bipartite'")
         self.assigner = assigner
         self.max_size = None if max_size is None else _count(max_size, "max_size")
+        self.workers = _count(workers, "workers")
         self.modes = (ModeConfig("direct", ()),) if modes is None else tuple(modes)
         _check_modes(self.modes)
         if self.dt <= 0:
@@ -180,6 +184,8 @@ class SimulationConfig:
             raise ValueError("et must be at most horizon")
         if self.max_size is not None and self.max_size < 2:
             raise ValueError("max_size must be at least 2")
+        if self.workers < 1:
+            raise ValueError("workers must be at least 1")
 
     @classmethod
     def from_dict(cls, data: dict[str, object]) -> SimulationConfig:
@@ -209,7 +215,8 @@ class SimulationConfig:
             max_size = None
         else:
             max_size = _count(mapping["max_size"], "max_size")
-        return cls(horizon, step, et, commit, assigner, modes, max_size)
+        workers = 1 if "workers" not in mapping else _count(mapping["workers"], "workers")
+        return cls(horizon, step, et, commit, assigner, modes, max_size, workers)
 
     @classmethod
     def from_simulator(cls, simulator: Simulator) -> SimulationConfig:
@@ -227,6 +234,7 @@ class SimulationConfig:
             assigner=assigner,
             modes=modes,
             max_size=simulator.max_size,
+            workers=simulator.workers,
         )
 
     def to_dict(self) -> dict[str, object]:
@@ -253,6 +261,8 @@ class SimulationConfig:
         }
         if self.max_size is not None:
             record["max_size"] = self.max_size
+        if self.workers != 1:
+            record["workers"] = self.workers
         record["modes"] = modes
         return record
 
@@ -266,6 +276,7 @@ class SimulationConfig:
             assigner=self.assigner,
             modes=self.modes,
             max_size=self.max_size,
+            workers=self.workers,
         )
 
     def build(
@@ -304,6 +315,7 @@ class SimulationConfig:
                 et=self.et,
                 commit=self.commit,
                 max_size=self.max_size,
+                workers=self.workers,
             )
         return Simulator(
             cluster,
@@ -314,6 +326,7 @@ class SimulationConfig:
             et=self.et,
             commit=self.commit,
             max_size=self.max_size,
+            workers=self.workers,
         )
 
 
