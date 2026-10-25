@@ -5,6 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.filters.meters import as_float32
+from carpoolsim.trip_cluster.filters.meters import infinities
 from carpoolsim.trip_cluster.filters.pnr.plan import PnrPlan
 
 
@@ -28,16 +30,19 @@ class FilterPnrPassengerAccess:
         """AND the passenger-access condition into ``matrix``."""
         chosen = self.plan.require(len(cluster))
         parked = np.clip(chosen, 0, None)
-        access = np.hypot(
-            cluster.ox[None, :] - self.plan.px[parked],
-            cluster.oy[None, :] - self.plan.py[parked],
-        )
-        solo = np.hypot(cluster.ox - cluster.dx, cluster.oy - cluster.dy)
+        ox = as_float32(cluster.ox)
+        oy = as_float32(cluster.oy)
+        dx = as_float32(cluster.dx)
+        dy = as_float32(cluster.dy)
+        px = as_float32(self.plan.px)
+        py = as_float32(self.plan.py)
+        access = np.hypot(ox[None, :] - px[parked], oy[None, :] - py[parked])
+        solo = np.hypot(ox - dx, oy - dy)
         ratio = np.divide(
             access,
             solo[None, :],
-            out=np.full(access.shape, np.inf),
+            out=infinities(access.shape),
             where=solo[None, :] > 0,
         )
-        ratio = np.where(chosen >= 0, ratio, np.inf)
+        ratio = np.where(chosen >= 0, ratio, np.float32(np.inf))
         matrix &= ratio <= self.mu_3

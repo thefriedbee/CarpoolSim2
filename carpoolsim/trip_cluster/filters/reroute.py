@@ -5,6 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.filters.meters import as_float32
+from carpoolsim.trip_cluster.filters.meters import infinities
 
 
 class FilterRerouteEuclideanDistance:
@@ -24,21 +26,19 @@ class FilterRerouteEuclideanDistance:
 
     def __call__(self, cluster: TripCluster, matrix: np.ndarray) -> None:
         """AND the driver-reroute condition into ``matrix``."""
-        pickup = np.hypot(
-            cluster.ox[:, None] - cluster.ox[None, :],
-            cluster.oy[:, None] - cluster.oy[None, :],
-        )
-        passenger = np.hypot(cluster.ox - cluster.dx, cluster.oy - cluster.dy)
-        dropoff = np.hypot(
-            cluster.dx[None, :] - cluster.dx[:, None],
-            cluster.dy[None, :] - cluster.dy[:, None],
-        )
-        direct = np.hypot(cluster.ox - cluster.dx, cluster.oy - cluster.dy)
+        ox = as_float32(cluster.ox)
+        oy = as_float32(cluster.oy)
+        dx = as_float32(cluster.dx)
+        dy = as_float32(cluster.dy)
+        pickup = np.hypot(ox[:, None] - ox[None, :], oy[:, None] - oy[None, :])
+        passenger = np.hypot(ox - dx, oy - dy)
+        dropoff = np.hypot(dx[None, :] - dx[:, None], dy[None, :] - dy[:, None])
+        direct = np.hypot(ox - dx, oy - dy)
         reroute = pickup + passenger[None, :] + dropoff
         ratio = np.divide(
             reroute,
             direct[:, None],
-            out=np.full(reroute.shape, np.inf),
+            out=infinities(reroute.shape),
             where=direct[:, None] > 0,
         )
         matrix &= ratio <= self.mu_1

@@ -52,10 +52,11 @@ COUNTS = (5_000, 10_000, 20_000, 50_000, 100_000)
 SEED = 20261024
 OUT_DIR = ROOT / "data_outputs" / "trip_mass_speed" / "h5_dt2p5_m50"
 SAMPLE_DIR = ROOT / "data_inputs" / "trip_mass" / "h5_dt2p5_m50"
-# Three float64 copies of the trips × trips × lots tensor, plus headroom
+# Three float32 copies of the trips × trips × lots tensor, plus headroom
 # for the street graph on a 48 GB machine.
 PNR_TENSOR_BUDGET = 6 * 10**9
 PNR_TENSOR_COPIES = 3
+PNR_TENSOR_BYTES = 4
 
 
 def stratified_sample(source: pd.DataFrame, target: int, rng: np.random.Generator) -> pd.DataFrame:
@@ -130,10 +131,10 @@ def pnr_group_cap(peak: int, n_lots: int, budget: int = PNR_TENSOR_BUDGET) -> in
     """
     if peak < 2 or n_lots < 1:
         return None
-    need = peak * peak * n_lots * 8 * PNR_TENSOR_COPIES
+    need = peak * peak * n_lots * PNR_TENSOR_BYTES * PNR_TENSOR_COPIES
     if need <= budget:
         return None
-    room = budget / (PNR_TENSOR_COPIES * n_lots * 8)
+    room = budget / (PNR_TENSOR_COPIES * n_lots * PNR_TENSOR_BYTES)
     cap = int(np.floor(np.sqrt(room)))
     return max(2, min(cap, peak))
 

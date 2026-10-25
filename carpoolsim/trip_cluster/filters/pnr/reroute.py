@@ -5,6 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.filters.meters import as_float32
+from carpoolsim.trip_cluster.filters.meters import infinities
 from carpoolsim.trip_cluster.filters.pnr.plan import PnrPlan
 
 
@@ -28,26 +30,23 @@ class FilterPnrRerouteEuclidean:
 
     def __call__(self, cluster: TripCluster, matrix: np.ndarray) -> None:
         """AND the driver-reroute condition into ``matrix`` and record the lot."""
-        origin_lot = np.hypot(
-            cluster.ox[:, None] - self.plan.px[None, :],
-            cluster.oy[:, None] - self.plan.py[None, :],
-        )
-        lot_dest = np.hypot(
-            self.plan.px[:, None] - cluster.dx[None, :],
-            self.plan.py[:, None] - cluster.dy[None, :],
-        )
-        dropoff = np.hypot(
-            cluster.dx[None, :] - cluster.dx[:, None],
-            cluster.dy[None, :] - cluster.dy[:, None],
-        )
+        ox = as_float32(cluster.ox)
+        oy = as_float32(cluster.oy)
+        dx = as_float32(cluster.dx)
+        dy = as_float32(cluster.dy)
+        px = as_float32(self.plan.px)
+        py = as_float32(self.plan.py)
+        origin_lot = np.hypot(ox[:, None] - px[None, :], oy[:, None] - py[None, :])
+        lot_dest = np.hypot(px[:, None] - dx[None, :], py[:, None] - dy[None, :])
+        dropoff = np.hypot(dx[None, :] - dx[:, None], dy[None, :] - dy[:, None])
         near = origin_lot <= self.plan.r_p * 1000.0
         reroute = origin_lot[:, None, :] + lot_dest.T[None, :, :] + dropoff[:, :, None]
-        reroute = np.where(near[:, None, :] & near[None, :, :], reroute, np.inf)
-        direct = np.hypot(cluster.ox - cluster.dx, cluster.oy - cluster.dy)
+        reroute = np.where(near[:, None, :] & near[None, :, :], reroute, np.float32(np.inf))
+        direct = np.hypot(ox - dx, oy - dy)
         ratio = np.divide(
             reroute,
             direct[:, None, None],
-            out=np.full(reroute.shape, np.inf),
+            out=infinities(reroute.shape),
             where=direct[:, None, None] > 0,
         )
         matrix &= ratio.min(axis=2) <= self.mu_1

@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.filters.meters import as_float32
 
 
 class FilterDestinationEuclideanDistance:
@@ -22,6 +23,7 @@ class FilterDestinationEuclideanDistance:
 
     def __call__(self, cluster: TripCluster, matrix: np.ndarray) -> None:
         """AND the destination-distance condition into ``matrix``."""
-        east = cluster.dx[:, None] - cluster.dx[None, :]
-        north = cluster.dy[:, None] - cluster.dy[None, :]
-        matrix &= np.hypot(east, north) <= self.r2 * 1000.0
+        east = as_float32(cluster.dx)
+        north = as_float32(cluster.dy)
+        distance = np.hypot(east[:, None] - east[None, :], north[:, None] - north[None, :])
+        matrix &= distance <= self.r2 * 1000.0

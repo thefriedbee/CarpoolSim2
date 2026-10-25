@@ -5,6 +5,8 @@ from __future__ import annotations
 import numpy as np
 
 from carpoolsim.trip_cluster.cluster import TripCluster
+from carpoolsim.trip_cluster.filters.meters import as_float32
+from carpoolsim.trip_cluster.filters.meters import infinities
 
 
 class FilterDropoffEuclideanDistance:
@@ -24,15 +26,16 @@ class FilterDropoffEuclideanDistance:
 
     def __call__(self, cluster: TripCluster, matrix: np.ndarray) -> None:
         """AND the drop-off condition into ``matrix``."""
-        last_leg = np.hypot(
-            cluster.dx[None, :] - cluster.dx[:, None],
-            cluster.dy[None, :] - cluster.dy[:, None],
-        )
-        direct = np.hypot(cluster.ox - cluster.dx, cluster.oy - cluster.dy)
+        ox = as_float32(cluster.ox)
+        oy = as_float32(cluster.oy)
+        dx = as_float32(cluster.dx)
+        dy = as_float32(cluster.dy)
+        last_leg = np.hypot(dx[None, :] - dx[:, None], dy[None, :] - dy[:, None])
+        direct = np.hypot(ox - dx, oy - dy)
         ratio = np.divide(
             last_leg,
             direct[:, None],
-            out=np.full(last_leg.shape, np.inf),
+            out=infinities(last_leg.shape),
             where=direct[:, None] > 0,
         )
         matrix &= ratio <= self.mu_2

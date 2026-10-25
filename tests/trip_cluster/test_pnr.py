@@ -50,6 +50,64 @@ def test_access_filter_keeps_pairs_inside_r_p_including_the_exact_limit() -> Non
     assert plan.lot[0, 2] == -1
 
 
+def test_access_filter_keeps_the_exact_limit_at_web_mercator_scale() -> None:
+    # Integer meters near Atlanta stay exact in float32, so the boundary does too.
+    east = -9_390_000.0
+    north = 4_000_000.0
+    cluster = TripCluster(
+        ox=np.array([east, east + 1500.0, east + 1501.0]),
+        oy=np.full(3, north),
+        dx=np.full(3, east),
+        dy=np.full(3, north),
+        t=np.zeros(3),
+    )
+    plan = PnrPlan([east], [north], 1.5)
+    share = Shareability(cluster)
+
+    share.apply(FilterPnrAccess(plan))
+
+    assert share.matrix.tolist() == [
+        [False, True, False],
+        [True, False, False],
+        [False, False, False],
+    ]
+
+
+def test_lot_distance_tensors_stay_float32(monkeypatch: pytest.MonkeyPatch) -> None:
+    dtypes: list[np.dtype] = []
+    real_where = np.where
+    real_divide = np.divide
+
+    def where(*args: object, **kwargs: object) -> np.ndarray:
+        out = real_where(*args, **kwargs)
+        dtypes.append(out.dtype)
+        return out
+
+    def divide(*args: object, **kwargs: object) -> np.ndarray:
+        out = real_divide(*args, **kwargs)
+        dtypes.append(out.dtype)
+        return out
+
+    monkeypatch.setattr("carpoolsim.trip_cluster.filters.pnr.access.np.where", where)
+    monkeypatch.setattr("carpoolsim.trip_cluster.filters.pnr.reroute.np.where", where)
+    monkeypatch.setattr("carpoolsim.trip_cluster.filters.pnr.reroute.np.divide", divide)
+    cluster = TripCluster(
+        ox=np.array([0.0, 1000.0]),
+        oy=np.zeros(2),
+        dx=np.array([2000.0, 3000.0]),
+        dy=np.zeros(2),
+        t=np.zeros(2),
+    )
+    plan = PnrPlan([500.0], [0.0], 2)
+    matrix = np.ones((2, 2), dtype=bool)
+
+    FilterPnrAccess(plan)(cluster, matrix)
+    FilterPnrRerouteEuclidean(PnrPlan([500.0], [0.0], 2), 2)(cluster, matrix)
+
+    assert dtypes
+    assert all(dtype == np.float32 for dtype in dtypes)
+
+
 def test_access_filter_chooses_the_lot_with_the_shortest_combined_drive() -> None:
     # Lot 1 is between the origins. Lot 0 is off to the side, so the sum of drives is longer.
     cluster = TripCluster(

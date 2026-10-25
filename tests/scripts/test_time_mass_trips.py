@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 
 from carpoolsim.config import load_config
+from scripts.time_mass_trips import PNR_TENSOR_BYTES
+from scripts.time_mass_trips import PNR_TENSOR_COPIES
 from scripts.time_mass_trips import nested_samples
 from scripts.time_mass_trips import peak_window
 from scripts.time_mass_trips import pnr_group_cap
@@ -53,4 +55,5 @@ def test_pnr_group_cap_shrinks_a_window_that_does_not_fit() -> None:
     cap = pnr_group_cap(10_000, n_lots=3_473, budget=6 * 10**9)
     assert cap is not None
     assert 2 <= cap < 10_000
-    assert cap * cap * 3_473 * 8 * 3 <= 6 * 10**9
+    assert PNR_TENSOR_BYTES == 4
+    assert cap * cap * 3_473 * PNR_TENSOR_BYTES * PNR_TENSOR_COPIES <= 6 * 10**9
