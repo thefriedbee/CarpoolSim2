@@ -32,6 +32,7 @@ def test_defaults_match_an_empty_direct_run() -> None:
     assert simulator.commit == "window"
     assert isinstance(simulator.assigner, MatchingAssigner)
     assert simulator.modes == (("direct", ()),)
+    assert simulator.max_size == 100
 
 
 def test_yaml_and_json_load_the_same_settings(tmp_path: Path) -> None:
@@ -244,7 +245,9 @@ def test_max_size_is_kept_when_set_and_omitted_when_absent(tmp_path: Path) -> No
     assert loaded.to_dict()["max_size"] == 40
     assert SimulationConfig.from_simulator(simulator).to_dict() == loaded.to_dict()
     assert loaded.with_horizon(30).max_size == 40
-    assert "max_size" not in load_config(ROOT / "config" / "gt_2022.yaml").to_dict()
+    loaded_default = load_config(ROOT / "config" / "gt_2022.yaml")
+    assert loaded_default.max_size == 100
+    assert loaded_default.to_dict()["max_size"] == 100
 
     path.write_text("max_size: null\n")
     assert load_config(path).max_size is None

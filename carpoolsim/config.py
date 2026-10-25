@@ -12,6 +12,7 @@ from carpoolsim.optimizer import BipartiteAssigner
 from carpoolsim.optimizer import GreedyAssigner
 from carpoolsim.optimizer import MatchingAssigner
 from carpoolsim.simulator import Simulator
+from carpoolsim.simulator.simulator import DEFAULT_MAX_SIZE
 from carpoolsim.trip_cluster import FilterDepartureTime
 from carpoolsim.trip_cluster import FilterDestinationEuclideanDistance
 from carpoolsim.trip_cluster import FilterDropoffEuclideanDistance
@@ -132,11 +133,12 @@ class SimulationConfig:
     ``horizon`` and ``dt`` are minutes. ``et`` limits who may drive; omitted,
     anyone in the pool may drive. ``commit`` is ``"window"`` or ``"step"``.
     ``assigner`` is ``"matching"``, ``"greedy"``, or ``"bipartite"``.
-    ``max_size``, when set, is the most travelers one matching group may
-    hold. Omitted, each pool stays one group.
+    ``max_size`` is the most travelers one matching group may hold. The pool
+    is cut by trip similarity until every group is that small. The default is
+    100. ``null`` leaves each pool as one group.
 
     The default is a 15-minute horizon, a 5-minute step, no ``et``, window
-    commit, the maximum-cardinality matcher, no ``max_size``, and one empty
+    commit, the maximum-cardinality matcher, groups of 100, and one empty
     mode named ``"direct"``. A file replaces whichever of these it sets. A
     single mode with an empty name is the unnamed filter list ``Simulator``
     uses when it is constructed without modes.
@@ -154,7 +156,7 @@ class SimulationConfig:
         commit: str = "window",
         assigner: str = "matching",
         modes: Sequence[ModeConfig] | None = None,
-        max_size: int | None = None,
+        max_size: int | None = DEFAULT_MAX_SIZE,
     ) -> None:
         self.horizon = _real(horizon, "horizon")
         self.dt = _real(dt, "dt")
@@ -201,8 +203,11 @@ class SimulationConfig:
             if not isinstance(listed, list):
                 raise ValueError("modes must be a list")
             modes = tuple(_mode_from_dict(item) for item in listed)
-        max_size = None
-        if "max_size" in mapping and mapping["max_size"] is not None:
+        if "max_size" not in mapping:
+            max_size: int | None = DEFAULT_MAX_SIZE
+        elif mapping["max_size"] is None:
+            max_size = None
+        else:
             max_size = _count(mapping["max_size"], "max_size")
         return cls(horizon, step, et, commit, assigner, modes, max_size)
 

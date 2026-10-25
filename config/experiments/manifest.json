@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "design": "one scalar change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls then add three levels so each has five values",
-  "timing": "wall time of simulator.run() only; one fresh process and exact nearest-node lookup cache per notebook",
+  "design": "one change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls and the horizon have five levels; both modes use matching, bipartite, and greedy",
+  "timing": "wall time of simulator.run() only; one fresh process, portal path cache, and exact nearest-node lookup cache per notebook",
   "repetitions": 1,
   "inputs": {
     "trips": "data_inputs/trip/gt_2022_off_campus_trips.csv",
@@ -25,6 +25,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -75,6 +76,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -125,6 +127,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -175,6 +178,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -225,6 +229,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -275,6 +280,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -325,6 +331,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -375,6 +382,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -425,6 +433,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -475,6 +484,7 @@
         "et": null,
         "commit": "window",
         "assigner": "greedy",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -525,6 +535,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -579,6 +590,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -633,6 +645,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -687,6 +700,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -741,6 +755,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -795,6 +810,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -849,6 +865,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -903,6 +920,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -957,6 +975,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -1011,6 +1030,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -1065,6 +1085,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1148,6 +1169,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1198,6 +1220,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1248,6 +1271,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1298,6 +1322,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1348,6 +1373,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1398,6 +1424,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1448,6 +1475,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1498,6 +1526,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1548,6 +1577,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1598,6 +1628,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1648,6 +1679,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1698,6 +1730,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1748,6 +1781,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1798,6 +1832,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1848,6 +1883,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1898,6 +1934,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1948,6 +1985,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -1998,6 +2036,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "direct",
@@ -2048,6 +2087,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2102,6 +2142,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2156,6 +2197,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2210,6 +2252,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2264,6 +2307,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2318,6 +2362,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2372,6 +2417,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2426,6 +2472,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2480,6 +2527,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2534,6 +2582,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2588,6 +2637,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2642,6 +2692,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2696,6 +2747,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2750,6 +2802,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2804,6 +2857,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2858,6 +2912,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2912,6 +2967,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -2966,6 +3022,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -3020,6 +3077,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -3074,6 +3132,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -3128,6 +3187,7 @@
         "et": null,
         "commit": "window",
         "assigner": "matching",
+        "max_size": 100,
         "modes": [
           {
             "name": "pnr",
@@ -3167,6 +3227,485 @@
       "config_path": "config/experiments/e60_pnr_delta2_20.yaml",
       "notebook_path": "notebooks/experiments/e60_pnr_delta2_20.ipynb",
       "output_path": "data_outputs/experiments/e60_pnr_delta2_20"
+    },
+    {
+      "experiment_id": "e61_direct_horizon_5",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 5,
+      "description": "Set the matching horizon to 5 minutes.",
+      "config": {
+        "horizon": 5.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e61_direct_horizon_5.yaml",
+      "notebook_path": "notebooks/experiments/e61_direct_horizon_5.ipynb",
+      "output_path": "data_outputs/experiments/e61_direct_horizon_5"
+    },
+    {
+      "experiment_id": "e62_direct_horizon_10",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 10,
+      "description": "Set the matching horizon to 10 minutes.",
+      "config": {
+        "horizon": 10.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e62_direct_horizon_10.yaml",
+      "notebook_path": "notebooks/experiments/e62_direct_horizon_10.ipynb",
+      "output_path": "data_outputs/experiments/e62_direct_horizon_10"
+    },
+    {
+      "experiment_id": "e63_direct_horizon_45",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 45,
+      "description": "Set the matching horizon to 45 minutes.",
+      "config": {
+        "horizon": 45.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e63_direct_horizon_45.yaml",
+      "notebook_path": "notebooks/experiments/e63_direct_horizon_45.ipynb",
+      "output_path": "data_outputs/experiments/e63_direct_horizon_45"
+    },
+    {
+      "experiment_id": "e64_pnr_horizon_5",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 5,
+      "description": "Set the matching horizon to 5 minutes.",
+      "config": {
+        "horizon": 5.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e64_pnr_horizon_5.yaml",
+      "notebook_path": "notebooks/experiments/e64_pnr_horizon_5.ipynb",
+      "output_path": "data_outputs/experiments/e64_pnr_horizon_5"
+    },
+    {
+      "experiment_id": "e65_pnr_horizon_10",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 10,
+      "description": "Set the matching horizon to 10 minutes.",
+      "config": {
+        "horizon": 10.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e65_pnr_horizon_10.yaml",
+      "notebook_path": "notebooks/experiments/e65_pnr_horizon_10.ipynb",
+      "output_path": "data_outputs/experiments/e65_pnr_horizon_10"
+    },
+    {
+      "experiment_id": "e66_pnr_horizon_45",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "horizon",
+      "baseline_value": 15.0,
+      "value": 45,
+      "description": "Set the matching horizon to 45 minutes.",
+      "config": {
+        "horizon": 45.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e66_pnr_horizon_45.yaml",
+      "notebook_path": "notebooks/experiments/e66_pnr_horizon_45.ipynb",
+      "output_path": "data_outputs/experiments/e66_pnr_horizon_45"
+    },
+    {
+      "experiment_id": "e67_direct_assigner_bipartite",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "assigner",
+      "baseline_value": "matching",
+      "value": "bipartite",
+      "description": "Compare bipartite assignment with maximum-cardinality matching.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "bipartite",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e67_direct_assigner_bipartite.yaml",
+      "notebook_path": "notebooks/experiments/e67_direct_assigner_bipartite.ipynb",
+      "output_path": "data_outputs/experiments/e67_direct_assigner_bipartite"
+    },
+    {
+      "experiment_id": "e68_pnr_assigner_greedy",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "assigner",
+      "baseline_value": "matching",
+      "value": "greedy",
+      "description": "Compare greedy assignment with maximum-cardinality matching.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "greedy",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e68_pnr_assigner_greedy.yaml",
+      "notebook_path": "notebooks/experiments/e68_pnr_assigner_greedy.ipynb",
+      "output_path": "data_outputs/experiments/e68_pnr_assigner_greedy"
+    },
+    {
+      "experiment_id": "e69_pnr_assigner_bipartite",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "assigner",
+      "baseline_value": "matching",
+      "value": "bipartite",
+      "description": "Compare bipartite assignment with maximum-cardinality matching.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "bipartite",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.5
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e69_pnr_assigner_bipartite.yaml",
+      "notebook_path": "notebooks/experiments/e69_pnr_assigner_bipartite.ipynb",
+      "output_path": "data_outputs/experiments/e69_pnr_assigner_bipartite"
     }
   ]
 }

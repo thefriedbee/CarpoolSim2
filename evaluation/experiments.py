@@ -29,8 +29,8 @@ class MemoizedRoadRouter(RoadRouter):
     The cache starts empty and the first lookup delegates to
     ``RoadRouter.nearest_node``. Repeated coordinates reuse that exact node
     result. Use a fresh instance for every measured simulation so its first
-    lookups are included in the timer. Route searches and the base router's
-    optional portal cache retain their existing behavior.
+    lookups are included in the timer. The portal path cache is on unless
+    ``cached`` is false.
     """
 
     nearest_node_cache_policy = "per_instance_exact_coordinates"
@@ -40,7 +40,7 @@ class MemoizedRoadRouter(RoadRouter):
         nodes: gpd.GeoDataFrame,
         edges: gpd.GeoDataFrame,
         *,
-        cached: bool = False,
+        cached: bool = True,
         partition: NetworkPartition | None = None,
         max_nodes: int = 400,
         min_share: float = 0.30,
@@ -90,9 +90,11 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
 
     Later runs fill five-level curves for the controls that moved matching
     size in the screen. Each new run still changes one leaf from its mode
-    baseline. Horizon, the Euclidean detour ratio, and the assigner stay at
-    the original two points. The baseline value and the screen value are not
-    repeated.
+    baseline. The Euclidean detour ratio stays at the original two points.
+    The baseline value and the screen value are not repeated. Runs ``e61``
+    through ``e69`` then give the horizon five levels and give both modes
+    matching, bipartite, and greedy assignment. Ids ``e01`` through ``e60``
+    stay fixed.
 
     Times are minutes; ``r1`` and ``r_p`` are kilometers; the other filter
     controls are ratios. A larger ``dt`` checks the pool less frequently.
@@ -164,6 +166,36 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
         ("delta2_15", "modes.0.filters.6.delta2", 15, "Set waiting at the lot to 15 minutes."),
         ("delta2_20", "modes.0.filters.6.delta2", 20, "Set waiting at the lot to 20 minutes."),
     ]
+    # Appended after e60 so the earlier ids stay attached to their outputs.
+    added = [
+        ("direct", "horizon_5", "horizon", 5, "Set the matching horizon to 5 minutes."),
+        ("direct", "horizon_10", "horizon", 10, "Set the matching horizon to 10 minutes."),
+        ("direct", "horizon_45", "horizon", 45, "Set the matching horizon to 45 minutes."),
+        ("pnr", "horizon_5", "horizon", 5, "Set the matching horizon to 5 minutes."),
+        ("pnr", "horizon_10", "horizon", 10, "Set the matching horizon to 10 minutes."),
+        ("pnr", "horizon_45", "horizon", 45, "Set the matching horizon to 45 minutes."),
+        (
+            "direct",
+            "assigner_bipartite",
+            "assigner",
+            "bipartite",
+            "Compare bipartite assignment with maximum-cardinality matching.",
+        ),
+        (
+            "pnr",
+            "assigner_greedy",
+            "assigner",
+            "greedy",
+            "Compare greedy assignment with maximum-cardinality matching.",
+        ),
+        (
+            "pnr",
+            "assigner_bipartite",
+            "assigner",
+            "bipartite",
+            "Compare bipartite assignment with maximum-cardinality matching.",
+        ),
+    ]
     specs: list[dict[str, object]] = []
     baselines: dict[str, tuple[str, dict]] = {}
     for mode, filename, variants in (
@@ -216,6 +248,21 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
                     "config": config,
                 }
             )
+    for mode, suffix, parameter, value, description in added:
+        baseline_id, baseline = baselines[mode]
+        config, previous = _changed_config(baseline, parameter, value, f"{mode}/{suffix}")
+        specs.append(
+            {
+                "experiment_id": f"e{len(specs) + 1:02d}_{mode}_{suffix}",
+                "mode": mode,
+                "baseline_id": baseline_id,
+                "parameter": parameter,
+                "baseline_value": previous,
+                "value": value,
+                "description": description,
+                "config": config,
+            }
+        )
     return specs
 
 
@@ -223,10 +270,11 @@ def _both_direct_first(root: str | Path) -> dict[str, object]:
     """Direct carpool first, then park-and-ride, both at their baseline filters."""
     direct = load_config(Path(root) / "config" / "gt_2022.yaml").to_dict()
     pnr = load_config(Path(root) / "config" / "gt_2022_pnr.yaml").to_dict()
-    for key in ("horizon", "dt", "et", "commit", "assigner"):
-        if direct[key] != pnr[key]:
+    shared = ("horizon", "dt", "et", "commit", "assigner", "max_size")
+    for key in shared:
+        if direct.get(key) != pnr.get(key):
             raise ValueError(f"joint baseline requires the same {key} in both mode files")
-    config = {key: copy.deepcopy(direct[key]) for key in ("horizon", "dt", "et", "commit", "assigner")}
+    config = {key: copy.deepcopy(direct[key]) for key in shared if key in direct}
     config["modes"] = [copy.deepcopy(direct["modes"][0]), copy.deepcopy(pnr["modes"][0])]
     config = SimulationConfig.from_dict(config).to_dict()
     return {

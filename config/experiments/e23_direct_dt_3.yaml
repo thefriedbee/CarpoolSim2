@@ -5,6 +5,7 @@ dt: 3.0
 et: null
 commit: window
 assigner: matching
+max_size: 100
 modes:
 - name: direct
   filters:

@@ -1,0 +1,23 @@
+# Compare bipartite assignment with maximum-cardinality matching.
+# Times are minutes; distances are kilometers; other numeric filters are ratios.
+horizon: 15.0
+dt: 5.0
+et: null
+commit: window
+assigner: bipartite
+max_size: 100
+modes:
+- name: direct
+  filters:
+  - filter: FilterDepartureTime
+    delta1: 15.0
+  - filter: FilterOriginEuclideanDistance
+    r1: 5.0
+  - filter: FilterRerouteEuclideanDistance
+    mu_1: 1.5
+  - filter: FilterRerouteTravelTime
+    gamma_1: 1.5
+  - filter: FilterSharedTravelTime
+    gamma_2: 0.5
+  - filter: FilterPassengerWaitTime
+    delta2: 10.0

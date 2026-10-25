@@ -1,0 +1,25 @@
+# Set the matching horizon to 45 minutes.
+# Times are minutes; distances are kilometers; other numeric filters are ratios.
+horizon: 45.0
+dt: 5.0
+et: null
+commit: window
+assigner: matching
+max_size: 100
+modes:
+- name: pnr
+  r_p: 5.0
+  filters:
+  - filter: FilterDepartureTime
+    delta1: 15.0
+  - filter: FilterPnrAccess
+  - filter: FilterPnrRerouteEuclidean
+    mu_1: 1.5
+  - filter: FilterPnrPassengerAccess
+    mu_3: 0.5
+  - filter: FilterPnrRerouteTravelTime
+    gamma_1: 1.5
+  - filter: FilterPnrSharedTravelTime
+    gamma_2: 0.5
+  - filter: FilterPnrWait
+    delta2: 10.0

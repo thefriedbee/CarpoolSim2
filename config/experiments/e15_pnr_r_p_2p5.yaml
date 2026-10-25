@@ -5,6 +5,7 @@ dt: 5.0
 et: null
 commit: window
 assigner: matching
+max_size: 100
 modes:
 - name: pnr
   r_p: 2.5

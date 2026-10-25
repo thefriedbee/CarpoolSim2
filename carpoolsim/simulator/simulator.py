@@ -15,6 +15,10 @@ from carpoolsim.trip_cluster.share import Filter
 from carpoolsim.trip_cluster.share import Shareability
 
 
+# Most travelers kept in one spatial group. None leaves the pool as one group.
+DEFAULT_MAX_SIZE = 100
+
+
 class Match:
     """One committed carpool.
 
@@ -51,10 +55,10 @@ class Simulator:
     clock ``t`` the pool holds every still-unmatched traveler whose departure
     lies in ``[t, t + horizon]``. Modes then run in the order they were given.
     Each mode copies the travelers who are still unmatched into a cluster, in
-    departure order. When ``max_size`` is set, that cluster is cut into
-    groups of at most ``max_size`` similar trips, and each group is filtered
-    and assigned on its own. The pairs from those groups are then committed
-    together. When ``max_size`` is omitted, the cluster stays one group. The
+    departure order. The cluster is cut into groups of at most ``max_size``
+    similar trips, and each group is filtered and assigned on its own. The
+    pairs from those groups are then committed together. The default group
+    holds 100 travelers. Pass ``None`` and the cluster stays one group. The
     copy keeps their traveler ids. Both members of a committed pair leave
     the pool before the next mode runs. A later mode can match only the
     travelers the earlier modes left.
@@ -87,7 +91,7 @@ class Simulator:
         et: float | None = None,
         commit: str = "window",
         modes: Sequence[tuple[str, Sequence[Filter]]] | None = None,
-        max_size: int | None = None,
+        max_size: int | None = DEFAULT_MAX_SIZE,
     ) -> None:
         self.cluster = cluster
         self.assigner = assigner

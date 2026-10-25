@@ -58,7 +58,7 @@ def load_inputs(project: Path):
         names = ", ".join(str(path.relative_to(project)) for path in missing)
         raise FileNotFoundError(f"missing input files: {names}")
     nodes, edges = load_network(network)
-    router = MemoizedRoadRouter(nodes, edges)
+    router = MemoizedRoadRouter(nodes, edges, cached=False)
     cluster = TripCluster.from_csv(trips)
     lots = lot_coordinates(load_lots(network))
     return cluster, router, edges, lots

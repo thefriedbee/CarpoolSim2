@@ -24,6 +24,13 @@ from evaluation.score import RunTables
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_experiment_router_opens_the_portal_cache(line_network) -> None:
+    nodes, edges = line_network
+    router = MemoizedRoadRouter(nodes, edges)
+    assert router.cached is True
+    assert router.partition is not None
+
+
 def test_memoized_snapping_is_exact_and_starts_empty_per_router(line_network, monkeypatch) -> None:
     nodes, edges = line_network
     points = [(0.0, 0.0), (0.018, 0.0), (0.045, 0.0), (0.01800000001, 0.0)]
@@ -85,14 +92,33 @@ def leaves(value, prefix="") -> dict:
 def test_plan_has_valid_independent_configs() -> None:
     specs = experiment_specs(ROOT)
 
-    assert len(specs) == 60
-    assert len({spec["experiment_id"] for spec in specs}) == 60
+    assert len(specs) == 69
+    assert len({spec["experiment_id"] for spec in specs}) == 69
     assert [spec["mode"] for spec in specs] == (
-        ["direct"] * 10 + ["pnr"] * 10 + ["both"] + ["direct"] * 18 + ["pnr"] * 21
+        ["direct"] * 10
+        + ["pnr"] * 10
+        + ["both"]
+        + ["direct"] * 18
+        + ["pnr"] * 21
+        + ["direct"] * 3
+        + ["pnr"] * 3
+        + ["direct"]
+        + ["pnr"] * 2
     )
     assert specs[20]["experiment_id"] == "e21_both_direct_first"
     assert specs[21]["experiment_id"] == "e22_direct_dt_1"
-    assert specs[-1]["experiment_id"] == "e60_pnr_delta2_20"
+    assert specs[59]["experiment_id"] == "e60_pnr_delta2_20"
+    assert [spec["experiment_id"] for spec in specs[60:]] == [
+        "e61_direct_horizon_5",
+        "e62_direct_horizon_10",
+        "e63_direct_horizon_45",
+        "e64_pnr_horizon_5",
+        "e65_pnr_horizon_10",
+        "e66_pnr_horizon_45",
+        "e67_direct_assigner_bipartite",
+        "e68_pnr_assigner_greedy",
+        "e69_pnr_assigner_bipartite",
+    ]
     by_id = {spec["experiment_id"]: spec for spec in specs}
     direct = load_config(ROOT / "config" / "gt_2022.yaml").to_dict()
     pnr = load_config(ROOT / "config" / "gt_2022_pnr.yaml").to_dict()
@@ -112,7 +138,7 @@ def test_plan_has_valid_independent_configs() -> None:
             else:
                 assert spec["mode"] == "both"
                 assert spec["config"]["modes"] == [direct["modes"][0], pnr["modes"][0]]
-                for key in ("horizon", "dt", "et", "commit", "assigner"):
+                for key in ("horizon", "dt", "et", "commit", "assigner", "max_size"):
                     assert spec["config"][key] == direct[key] == pnr[key]
             assert spec["baseline_value"] is None
             assert spec["value"] is None
@@ -130,9 +156,11 @@ def test_plan_covers_the_clock_and_each_numeric_filter() -> None:
             key for key, value in leaves(group[0]["config"]).items()
             if isinstance(value, int | float)
         }
+        numeric_controls.discard("max_size")
         varied = {spec["parameter"] for spec in group[1:]}
         assert numeric_controls <= varied
-        assert len(varied) == 9
+        assert "assigner" in varied
+        assert len(varied) == {"direct": 9, "pnr": 10}[mode]
 
     original = copy.deepcopy(specs[0]["config"])
     specs[1]["config"]["modes"][0]["filters"][0]["delta1"] = -123
@@ -152,12 +180,14 @@ def _levels(specs: list[dict], mode: str, parameter: str) -> set[float]:
 def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> None:
     specs = experiment_specs(ROOT)
     five = {
+        ("direct", "horizon"): {5, 10, 15, 30, 45},
         ("direct", "dt"): {1, 3, 5, 10, 15},
         ("direct", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
         ("direct", "modes.0.filters.1.r1"): {1, 2.5, 5, 10, 15},
         ("direct", "modes.0.filters.3.gamma_1"): {1.1, 1.25, 1.5, 2, 2.5},
         ("direct", "modes.0.filters.4.gamma_2"): {0.25, 0.5, 0.75, 0.9, 1},
         ("direct", "modes.0.filters.5.delta2"): {0, 5, 10, 15, 20},
+        ("pnr", "horizon"): {5, 10, 15, 30, 45},
         ("pnr", "dt"): {1, 3, 5, 10, 15},
         ("pnr", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
         ("pnr", "modes.0.r_p"): {1, 2.5, 5, 10, 15},
@@ -169,15 +199,16 @@ def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> 
     for (mode, parameter), expected in five.items():
         assert _levels(specs, mode, parameter) == expected
     for mode, parameter in (
-        ("direct", "horizon"),
         ("direct", "modes.0.filters.2.mu_1"),
-        ("pnr", "horizon"),
         ("pnr", "modes.0.filters.2.mu_1"),
     ):
         found = [spec for spec in specs if spec["mode"] == mode and spec["parameter"] == parameter]
         assert len(found) == 1
-    assigners = [spec for spec in specs if spec["mode"] == "direct" and spec["parameter"] == "assigner"]
-    assert [spec["value"] for spec in assigners] == ["greedy"]
+    assigners = {
+        mode: [spec["value"] for spec in specs if spec["mode"] == mode and spec["parameter"] == "assigner"]
+        for mode in ("direct", "pnr")
+    }
+    assert assigners == {"direct": ["greedy", "bipartite"], "pnr": ["greedy", "bipartite"]}
 
 
 def completed_run(trips=3, matched=True):

@@ -1,0 +1,30 @@
+# Park-and-ride carpool for a sample of the morning drive-alone trips.
+# Times are minutes. Distances are kilometers. A ratio compares the carpool
+# tour with the traveler's own trip. r_p is how far an origin may be from a lot.
+# This is the mass-trip scale setting. The Georgia Tech screen stays in
+# config/gt_2022_pnr.yaml.
+
+horizon: 5
+dt: 2.5
+et: null
+commit: window
+assigner: matching
+max_size: 50
+
+modes:
+  - name: pnr
+    r_p: 5
+    filters:
+      - filter: FilterDepartureTime
+        delta1: 5
+      - filter: FilterPnrAccess
+      - filter: FilterPnrRerouteEuclidean
+        mu_1: 1.5
+      - filter: FilterPnrPassengerAccess
+        mu_3: 0.5
+      - filter: FilterPnrRerouteTravelTime
+        gamma_1: 1.5
+      - filter: FilterPnrSharedTravelTime
+        gamma_2: 0.5
+      - filter: FilterPnrWait
+        delta2: 10
