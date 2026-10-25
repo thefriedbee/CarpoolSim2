@@ -2,8 +2,10 @@
 
 ``RoadRouter`` searches the whole network with Dijkstra. Set ``cached=True``
 to store shortest paths between the portals of each part and search that
-overlay instead. Edge data on every graph is free-flow travel time in
-minutes, and ``float`` is the weight function so Dijkstra reads that time.
+overlay instead. ``travel_minutes`` returns that time alone.
+``route`` also returns the nodes and the edge rows. Edge data on every
+graph is free-flow travel time in minutes, and ``float`` is the weight
+function so Dijkstra reads that time.
 """
 
 from __future__ import annotations
@@ -95,6 +97,21 @@ class RoadRouter:
             return self._route_cached(origin, destination)
         return self._route_full(origin, destination)
 
+    def travel_minutes(self, origin: int, destination: int) -> float:
+        """Return the free-flow minutes from ``origin`` to ``destination``.
+
+        The time matches :meth:`route`. On the full street graph the search
+        stops at the destination and does not build the node path. A missing
+        path raises ``RuntimeError``.
+        """
+        origin = int(origin)
+        destination = int(destination)
+        if origin == destination:
+            return 0.0
+        if self.cached:
+            return self._minutes_cached(origin, destination)
+        return self._minutes_full(origin, destination)
+
     def _route_full(self, origin: int, destination: int) -> Route:
         if origin == destination:
             return Route(0.0, [origin], [])
@@ -104,6 +121,16 @@ class RoadRouter:
             raise RuntimeError("No path between the selected nodes.")
         path = [int(node) for node in found[destination]]
         return self._route_from_path(path)
+
+    def _minutes_full(self, origin: int, destination: int) -> float:
+        """Free-flow minutes on the whole street graph."""
+        assert self._road is not None
+        lengths = rx.dijkstra_shortest_path_lengths(
+            self._road, origin, float, goal=destination
+        )
+        if destination not in lengths:
+            raise RuntimeError("No path between the selected nodes.")
+        return float(lengths[destination])
 
     def _build_cache(self) -> None:
         """Store portal-to-portal paths and the overlay that joins them."""
@@ -262,6 +289,78 @@ class RoadRouter:
             raise RuntimeError("No path between the selected nodes.")
         path = min(options, key=self._travel_time_of)
         return self._route_from_path(path)
+
+    def _minutes_cached(self, origin: int, destination: int) -> float:
+        """Free-flow minutes through the portal overlay, without a node path."""
+        partition = self.partition
+        assert partition is not None
+        origin_cell = int(partition.cell_of[origin])
+        destination_cell = int(partition.cell_of[destination])
+        reached = self._part_minutes(self._forward[origin_cell], origin_cell, origin)
+        arrived = self._part_minutes(self._reverse[destination_cell], destination_cell, destination)
+        direct = (
+            reached[destination]
+            if origin_cell == destination_cell and destination in reached
+            else None
+        )
+        starts = {
+            portal: reached[portal]
+            for portal in self._portals_of[origin_cell]
+            if portal in reached
+        }
+        ends = {
+            portal: arrived[portal]
+            for portal in self._portals_of[destination_cell]
+            if portal in arrived
+        }
+        via = self._overlay_minutes(starts, ends)
+        options = [minutes for minutes in (direct, via) if minutes is not None]
+        if not options:
+            raise RuntimeError("No path between the selected nodes.")
+        return min(options)
+
+    def _part_minutes(self, graph: rx.PyDiGraph, cid: int, source: int) -> dict[int, float]:
+        """Minutes from ``source`` to nodes reached inside this part.
+
+        Keys are node rows in the table used to build the router. ``source``
+        is included at zero minutes.
+        """
+        lengths = rx.dijkstra_shortest_path_lengths(
+            graph, self._local_of[cid][source], float
+        )
+        global_of = self._global_of[cid]
+        reached = {source: 0.0}
+        for local_index, minutes in lengths.items():
+            reached[global_of[int(local_index)]] = float(minutes)
+        return reached
+
+    def _overlay_minutes(self, starts: dict[int, float], ends: dict[int, float]) -> float | None:
+        """Minutes from the origin-side portals to the destination-side portals.
+
+        Temporary edges are removed before this returns, including when the
+        search fails. ``None`` means the two sides do not meet.
+        """
+        if not starts or not ends:
+            return None
+        edge_ids: list[int] = []
+        try:
+            for portal, minutes in starts.items():
+                edge_ids.append(
+                    self._overlay.add_edge(self._super_src, self._overlay_of[portal], minutes)
+                )
+            for portal, minutes in ends.items():
+                edge_ids.append(
+                    self._overlay.add_edge(self._overlay_of[portal], self._super_sink, minutes)
+                )
+            found = rx.dijkstra_shortest_path_lengths(
+                self._overlay, self._super_src, float, goal=self._super_sink
+            )
+        finally:
+            for edge_id in reversed(edge_ids):
+                self._overlay.remove_edge_from_index(edge_id)
+        if self._super_sink not in found:
+            return None
+        return float(found[self._super_sink])
 
     def _travel_time_of(self, path: list[int]) -> float:
         """Return the free-flow travel time of a node path, in minutes."""

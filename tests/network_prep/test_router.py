@@ -25,6 +25,22 @@ def test_route_follows_the_line(line_router: RoadRouter) -> None:
     assert route.edge_rows == [0, 2, 4, 6, 8]
 
 
+def test_travel_minutes_matches_the_route(line_router: RoadRouter) -> None:
+    assert line_router.travel_minutes(0, 5) == pytest.approx(5.0)
+    assert line_router.travel_minutes(5, 0) == pytest.approx(5.0)
+    assert line_router.travel_minutes(2, 2) == pytest.approx(0.0)
+    assert line_router.route(0, 5).travel_time == pytest.approx(line_router.travel_minutes(0, 5))
+
+
+def test_travel_minutes_matches_the_shortcut(shortcut_network: Network) -> None:
+    nodes, edges = shortcut_network
+    for cached in (False, True):
+        router = RoadRouter(nodes, edges, cached=cached, max_nodes=2)
+        minutes = router.travel_minutes(0, 3)
+        assert minutes == pytest.approx(2.0)
+        assert router.route(0, 3).travel_time == pytest.approx(minutes)
+
+
 def test_same_node_is_a_zero_trip(line_router: RoadRouter) -> None:
     route = line_router.route(2, 2)
 
@@ -84,7 +100,12 @@ def test_missing_path_raises(network_builder) -> None:
     with pytest.raises(RuntimeError, match="No path between the selected nodes"):
         full.route(0, 2)
     with pytest.raises(RuntimeError, match="No path between the selected nodes"):
+        full.travel_minutes(0, 2)
+    with pytest.raises(RuntimeError, match="No path between the selected nodes"):
         cached.route(0, 2)
+    with pytest.raises(RuntimeError, match="No path between the selected nodes"):
+        cached.travel_minutes(0, 2)
+    assert cached.travel_minutes(0, 1) == pytest.approx(cached.route(0, 1).travel_time)
 
 
 def test_partition_from_other_tables_raises(line_network: Network) -> None:

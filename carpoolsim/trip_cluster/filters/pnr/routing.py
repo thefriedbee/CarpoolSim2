@@ -27,7 +27,7 @@ class LotTravel:
         minutes = self._minutes.get(key)
         if minutes is None:
             try:
-                minutes = self.router.route(origin, destination).travel_time
+                minutes = self.router.travel_minutes(origin, destination)
             except RuntimeError:
                 minutes = float("inf")
             self._minutes[key] = minutes
