@@ -9,9 +9,11 @@ from carpoolsim.config import load_config
 from scripts.time_mass_trips import PNR_TENSOR_BYTES
 from scripts.time_mass_trips import PNR_TENSOR_COPIES
 from scripts.time_mass_trips import nested_samples
+from scripts.time_mass_trips import output_dir
 from scripts.time_mass_trips import peak_window
 from scripts.time_mass_trips import pnr_group_cap
 from scripts.time_mass_trips import stratified_sample
+from scripts.time_mass_trips import with_workers
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,6 +50,25 @@ def test_mass_configs_use_the_short_horizon() -> None:
         filters = config["modes"][0]["filters"]
         assert filters[0]["delta1"] == 5.0
         assert filters[-1]["delta2"] == 10.0
+
+
+def test_one_worker_keeps_the_original_speed_folder() -> None:
+    assert output_dir(1) == ROOT / "data_outputs" / "trip_mass_speed" / "h5_dt2p5_m50"
+    assert output_dir(4).name == "h5_dt2p5_m50_w4"
+    assert output_dir(4).parent == output_dir(1).parent
+
+
+def test_workers_copy_keeps_the_mass_settings() -> None:
+    config = load_config(ROOT / "config" / "mass_sov.yaml")
+    parallel = with_workers(config, 4)
+
+    assert config.workers == 1
+    assert parallel.workers == 4
+    assert parallel.horizon == config.horizon
+    assert parallel.dt == config.dt
+    assert parallel.max_size == config.max_size
+    assert parallel.assigner == config.assigner
+    assert [mode.name for mode in parallel.modes] == [mode.name for mode in config.modes]
 
 
 def test_pnr_group_cap_shrinks_a_window_that_does_not_fit() -> None:

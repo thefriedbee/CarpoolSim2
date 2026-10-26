@@ -11,7 +11,9 @@ door-to-door carpool. PNR is park-and-ride. Both use ``config/mass_sov.yaml``
 and ``config/mass_pnr.yaml``: a 5-minute horizon, a 2.5-minute step, departure
 gap 5, groups of 50, and a 10-minute wait.
 
-Results go to ``data_outputs/trip_mass_speed/h5_dt2p5_m50/``.
+One worker writes ``data_outputs/trip_mass_speed/h5_dt2p5_m50/``.
+``--workers 4`` writes ``h5_dt2p5_m50_w4`` beside it and leaves the
+one-worker files in place. The YAML files stay at one worker.
 """
 
 from __future__ import annotations
@@ -50,7 +52,8 @@ CONFIGS = {
 }
 COUNTS = (5_000, 10_000, 20_000, 50_000, 100_000)
 SEED = 20261024
-OUT_DIR = ROOT / "data_outputs" / "trip_mass_speed" / "h5_dt2p5_m50"
+SPEED_DIR = ROOT / "data_outputs" / "trip_mass_speed"
+RUN_NAME = "h5_dt2p5_m50"
 SAMPLE_DIR = ROOT / "data_inputs" / "trip_mass" / "h5_dt2p5_m50"
 # Three float32 copies of the trips × trips × lots tensor, plus headroom
 # for the street graph on a 48 GB machine.
@@ -124,6 +127,35 @@ def peak_window(minutes: np.ndarray, horizon: float) -> int:
     return peak
 
 
+def output_dir(workers: int) -> Path:
+    """Return the speed folder for this worker count.
+
+    One worker keeps ``h5_dt2p5_m50``. A larger count uses
+    ``h5_dt2p5_m50_wN`` so the one-worker files stay in place.
+    """
+    if isinstance(workers, bool) or not isinstance(workers, int) or workers < 1:
+        raise ValueError("workers must be an integer of at least 1")
+    name = RUN_NAME if workers == 1 else f"{RUN_NAME}_w{workers}"
+    return SPEED_DIR / name
+
+
+def with_workers(config: SimulationConfig, workers: int) -> SimulationConfig:
+    """Return a copy that matches groups with ``workers`` processes.
+
+    The YAML files stay at one worker. The other settings are unchanged.
+    """
+    return SimulationConfig(
+        horizon=config.horizon,
+        dt=config.dt,
+        et=config.et,
+        commit=config.commit,
+        assigner=config.assigner,
+        modes=config.modes,
+        max_size=config.max_size,
+        workers=workers,
+    )
+
+
 def pnr_group_cap(peak: int, n_lots: int, budget: int = PNR_TENSOR_BUDGET) -> int | None:
     """Group size that keeps the lot tensors inside ``budget``, or None.
 
@@ -171,6 +203,7 @@ def time_run(
         "delta2": delta2,
         "assigner": config.assigner,
         "max_size": config.max_size,
+        "workers": config.workers,
         "modes": [mode.name for mode in config.modes],
     }
 
@@ -196,7 +229,7 @@ def _write_summary(out_dir: Path) -> None:
         return
     frame = pd.DataFrame(rows)
     columns = [
-        "trip_count", "mode", "simulation_seconds", "matched_pairs", "solo_travelers",
+        "trip_count", "mode", "workers", "simulation_seconds", "matched_pairs", "solo_travelers",
         "peak_window", "horizon", "dt", "delta1", "delta2", "max_size", "load_seconds",
     ]
     frame = frame.sort_values(["trip_count", "mode"])
@@ -208,15 +241,25 @@ def main() -> None:
     parser.add_argument("--count", type=int, nargs="+", default=list(COUNTS))
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--modes", nargs="+", choices=("sov", "pnr"), default=("sov", "pnr"))
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Processes that match groups. One writes h5_dt2p5_m50; more write h5_dt2p5_m50_wN.",
+    )
     args = parser.parse_args()
+    if args.workers < 1:
+        parser.error("workers must be an integer of at least 1")
 
-    configs = {mode: load_config(CONFIGS[mode]) for mode in args.modes}
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = output_dir(args.workers)
+    configs = {mode: with_workers(load_config(CONFIGS[mode]), args.workers) for mode in args.modes}
+    out_dir.mkdir(parents=True, exist_ok=True)
     SAMPLE_DIR.mkdir(parents=True, exist_ok=True)
     print(
-        "settings: horizon=5, dt=2.5, delta1=5, max_size=50, delta2=10",
+        f"settings: horizon=5, dt=2.5, delta1=5, max_size=50, delta2=10, workers={args.workers}",
         flush=True,
     )
+    print(f"writing {out_dir.relative_to(ROOT)}", flush=True)
     print(f"reading {SOURCE.name}", flush=True)
     source = pd.read_csv(SOURCE)
     samples = nested_samples(source, args.count, np.random.default_rng(args.seed))
@@ -233,7 +276,7 @@ def main() -> None:
         minutes = np.array([_minutes(clock) for clock in sample["departure_time"]])
         horizon = next(iter(configs.values())).horizon
         peak = peak_window(minutes, horizon)
-        run_dir = OUT_DIR / f"n{count}"
+        run_dir = out_dir / f"n{count}"
         run_dir.mkdir(parents=True, exist_ok=True)
         print(
             f"wrote {sample_path.relative_to(ROOT)}: {len(sample):,} trips, "
@@ -244,7 +287,7 @@ def main() -> None:
             config = configs[mode]
             print(
                 f"starting n={count:,} {mode}: horizon={config.horizon}, dt={config.dt}, "
-                f"max_size={config.max_size}",
+                f"max_size={config.max_size}, workers={config.workers}",
                 flush=True,
             )
             result = time_run(config, sample_path, lots=lots if mode == "pnr" else None)
@@ -259,7 +302,7 @@ def main() -> None:
             )
             path = run_dir / f"{mode}.json"
             path.write_text(json.dumps(result, indent=2) + "\n")
-            _write_summary(OUT_DIR)
+            _write_summary(out_dir)
             print(
                 f"n={count:,} {mode}: {result['simulation_seconds']:.1f}s simulation, "
                 f"{result['matched_pairs']} pairs, {result['solo_travelers']} solo. "
