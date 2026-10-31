@@ -28,6 +28,34 @@ A run can use one mode or both. `config/gt_2022.yaml` is door-to-door. `config/g
 
 Times in a configuration file are minutes. Distances such as `r1` and `r_p` are kilometers. A ratio such as `gamma_1` compares the carpool tour with the driver's own trip. The filter names and the rest of the settings are described in [docs/usage.md](docs/usage.md).
 
+## Results
+
+These figures use the Georgia Tech 2022 off-campus trips, 1,539 travelers. In the plots, SOV is door-to-door, PNR is park-and-ride, and Mixed tries door-to-door first.
+
+| Mode | Match rate | Matched pairs | Vehicle-minutes saved | Mean detour (min) | Mean wait (min) | Mean access (min) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| SOV | 69.1% | 532 | 4,333 | 1.92 | 1.11 | 0.00 |
+| PNR | 50.8% | 391 | 2,630 | 4.26 | 2.04 | 1.81 |
+| Mixed | 76.7% | 590 | 4,592 | 2.67 | 1.40 | 0.48 |
+
+SOV is `config/gt_2022.yaml`. PNR is `config/gt_2022_pnr.yaml`. Mixed is `config/experiments/e21_both_direct_first.yaml`.
+
+Eight matched routes from those SOV and PNR runs. Each panel is one carpool, and a kilometer has the same length on every panel. The street map is Esri, HERE, Garmin, and OpenStreetMap contributors.
+
+![Eight matched carpool routes around Atlanta](static/routes.jpg)
+
+Matching rate when one setting changes and the others stay at the baseline. The dashed line marks that baseline.
+
+![Matching rate for each one-factor sweep](static/match_rate.png)
+
+Park-and-ride stalls in use through the day, for every lot and for the four busiest lots.
+
+![Parking stalls in use through the day](static/lot_occupancy.png)
+
+Run time and matching rate on larger morning drive-alone samples. The time panel runs through 100,000 trips. The matching-rate panel runs through 500,000 trips.
+
+![Simulation time and matching rate as the trip table grows](static/simulation_time.png)
+
 ## Repository layout
 
 | Path | What it holds |
@@ -39,6 +67,7 @@ Times in a configuration file are minutes. Distances such as `r1` and `r_p` are 
 | `app/` | A Streamlit demo for the Georgia Tech day |
 | `tests/` | Tests |
 | `docs/` | Sphinx sources |
+| `static/` | Figures embedded in this README |
 | `data_inputs/osm/README.md` | How to build the Atlanta street and parking-lot extract |
 
 Street networks, trip tables, and run results stay on disk under `data_inputs/` and `data_outputs/`. They are not part of the source tree.
