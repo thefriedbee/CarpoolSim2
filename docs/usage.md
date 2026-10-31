@@ -1,10 +1,9 @@
 # Usage
 
-Install the package from a checkout of this repository. The documentation extra adds Sphinx, which is only needed to build these pages.
+Install the package from a checkout of this repository.
 
 ```bash
 uv sync
-uv sync --extra docs
 ```
 
 ## Run one configuration
@@ -49,13 +48,3 @@ Times are minutes. Distances such as `r1` and `r_p` are kilometers. A ratio such
 `horizon` is how far ahead the pool looks. `dt` is the clock step. `et`, when set, limits who may drive at the current step. `commit` is `window` or `step`. `assigner` is `matching`, `greedy`, or `bipartite`. `max_size` is the most travelers one matching group may hold. The current pool is cut by trip similarity until every group is that small. The default is 100. Set it to `null` and the pool stays one group. `workers` is how many processes match those groups. The default is 1, which keeps the work in the current process. A larger number starts a process pool for the run and sends the router to each worker once.
 
 `modes` is an ordered list of pipelines. Each mode has a `name` and a `filters` list. A park-and-ride mode also has `r_p`, the farthest an origin may be from a lot. The filter class names and their settings are the public filter classes in the API reference.
-
-## Build these pages
-
-From the repository root, after `uv sync --extra docs`:
-
-```bash
-uv run sphinx-build -b html docs docs/_build/html
-```
-
-Open `docs/_build/html/index.html`. Read the Docs rebuilds the same site from `.readthedocs.yaml` when the repository is connected there.
