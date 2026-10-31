@@ -127,7 +127,7 @@ With the app extra installed, and the saved Georgia Tech results on disk (`data_
 uv run streamlit run app/Home.py
 ```
 
-The demo shows the matched routes from that saved run. It does not match a new day.
+The demo reviews each traveler and the summary plots from that saved run. It does not match a new day.
 
 ## Documentation and tests
 

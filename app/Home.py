@@ -36,5 +36,5 @@ else:
     )
 
 st.subheader("Pages")
-st.page_link("pages/1_Results.py", label="Results", help="Matched routes and travel times.")
-st.page_link("pages/2_Experiments.py", label="Experiments", help="Compare the finished one-factor runs.")
+st.page_link("pages/1_Review.py", label="Review", help="One traveler's route.")
+st.page_link("pages/2_Plots.py", label="Plots", help="Summary charts for the day.")
