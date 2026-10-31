@@ -34,6 +34,6 @@ html_theme_options = {
     "navigation_depth": 3,
     "secondary_sidebar_items": ["page-toc"],
 }
-html_sidebars = {"**": []}
+# html_sidebars = {"**": []}
 myst_heading_anchors = 3
 myst_enable_extensions = ["colon_fence"]
