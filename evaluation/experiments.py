@@ -90,11 +90,11 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
 
     Later runs fill five-level curves for the controls that moved matching
     size in the screen. Each new run still changes one leaf from its mode
-    baseline. The Euclidean detour ratio stays at the original two points.
-    The baseline value and the screen value are not repeated. Runs ``e61``
-    through ``e69`` then give the horizon five levels and give both modes
-    matching, bipartite, and greedy assignment. Ids ``e01`` through ``e60``
-    stay fixed.
+    baseline. The baseline value and the screen value are not repeated.
+    Runs ``e61`` through ``e69`` give the horizon five levels and give both
+    modes matching, bipartite, and greedy assignment. Runs ``e70`` through
+    ``e75`` give the Euclidean detour ratio five levels: 1.05, 1.1, 1.25,
+    1.5, and 2. Ids ``e01`` through ``e69`` stay fixed.
 
     Times are minutes; ``r1`` and ``r_p`` are kilometers; the other filter
     controls are ratios. A larger ``dt`` checks the pool less frequently.
@@ -196,6 +196,16 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
             "Compare bipartite assignment with maximum-cardinality matching.",
         ),
     ]
+    # Appended after e69 so the earlier ids stay attached to their outputs.
+    # 1.25 is the original screen and 1.5 is the baseline, so neither is repeated.
+    mu_1_levels = [
+        ("direct", "mu_1_1p05", "modes.0.filters.2.mu_1", 1.05, "Set the Euclidean detour ratio to 1.05."),
+        ("direct", "mu_1_1p1", "modes.0.filters.2.mu_1", 1.1, "Set the Euclidean detour ratio to 1.1."),
+        ("direct", "mu_1_2", "modes.0.filters.2.mu_1", 2, "Set the Euclidean detour ratio to 2."),
+        ("pnr", "mu_1_1p05", "modes.0.filters.2.mu_1", 1.05, "Set the Euclidean detour ratio to 1.05."),
+        ("pnr", "mu_1_1p1", "modes.0.filters.2.mu_1", 1.1, "Set the Euclidean detour ratio to 1.1."),
+        ("pnr", "mu_1_2", "modes.0.filters.2.mu_1", 2, "Set the Euclidean detour ratio to 2."),
+    ]
     specs: list[dict[str, object]] = []
     baselines: dict[str, tuple[str, dict]] = {}
     for mode, filename, variants in (
@@ -248,7 +258,7 @@ def experiment_specs(root: str | Path) -> list[dict[str, object]]:
                     "config": config,
                 }
             )
-    for mode, suffix, parameter, value, description in added:
+    for mode, suffix, parameter, value, description in [*added, *mu_1_levels]:
         baseline_id, baseline = baselines[mode]
         config, previous = _changed_config(baseline, parameter, value, f"{mode}/{suffix}")
         specs.append(

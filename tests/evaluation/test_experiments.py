@@ -92,8 +92,8 @@ def leaves(value, prefix="") -> dict:
 def test_plan_has_valid_independent_configs() -> None:
     specs = experiment_specs(ROOT)
 
-    assert len(specs) == 69
-    assert len({spec["experiment_id"] for spec in specs}) == 69
+    assert len(specs) == 75
+    assert len({spec["experiment_id"] for spec in specs}) == 75
     assert [spec["mode"] for spec in specs] == (
         ["direct"] * 10
         + ["pnr"] * 10
@@ -104,6 +104,8 @@ def test_plan_has_valid_independent_configs() -> None:
         + ["pnr"] * 3
         + ["direct"]
         + ["pnr"] * 2
+        + ["direct"] * 3
+        + ["pnr"] * 3
     )
     assert specs[20]["experiment_id"] == "e21_both_direct_first"
     assert specs[21]["experiment_id"] == "e22_direct_dt_1"
@@ -118,6 +120,12 @@ def test_plan_has_valid_independent_configs() -> None:
         "e67_direct_assigner_bipartite",
         "e68_pnr_assigner_greedy",
         "e69_pnr_assigner_bipartite",
+        "e70_direct_mu_1_1p05",
+        "e71_direct_mu_1_1p1",
+        "e72_direct_mu_1_2",
+        "e73_pnr_mu_1_1p05",
+        "e74_pnr_mu_1_1p1",
+        "e75_pnr_mu_1_2",
     ]
     by_id = {spec["experiment_id"]: spec for spec in specs}
     direct = load_config(ROOT / "config" / "gt_2022.yaml").to_dict()
@@ -177,13 +185,14 @@ def _levels(specs: list[dict], mode: str, parameter: str) -> set[float]:
     return {float(value) for value in values}
 
 
-def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> None:
+def test_swept_controls_have_five_levels() -> None:
     specs = experiment_specs(ROOT)
     five = {
         ("direct", "horizon"): {5, 10, 15, 30, 45},
         ("direct", "dt"): {1, 3, 5, 10, 15},
         ("direct", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
         ("direct", "modes.0.filters.1.r1"): {1, 2.5, 5, 10, 15},
+        ("direct", "modes.0.filters.2.mu_1"): {1.05, 1.1, 1.25, 1.5, 2},
         ("direct", "modes.0.filters.3.gamma_1"): {1.1, 1.25, 1.5, 2, 2.5},
         ("direct", "modes.0.filters.4.gamma_2"): {0.25, 0.5, 0.75, 0.9, 1},
         ("direct", "modes.0.filters.5.delta2"): {0, 5, 10, 15, 20},
@@ -191,6 +200,7 @@ def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> 
         ("pnr", "dt"): {1, 3, 5, 10, 15},
         ("pnr", "modes.0.filters.0.delta1"): {5, 10, 15, 20, 30},
         ("pnr", "modes.0.r_p"): {1, 2.5, 5, 10, 15},
+        ("pnr", "modes.0.filters.2.mu_1"): {1.05, 1.1, 1.25, 1.5, 2},
         ("pnr", "modes.0.filters.3.mu_3"): {0.1, 0.25, 0.5, 0.75, 1},
         ("pnr", "modes.0.filters.4.gamma_1"): {1.1, 1.25, 1.5, 2, 2.5},
         ("pnr", "modes.0.filters.5.gamma_2"): {0.25, 0.5, 0.75, 0.9, 1},
@@ -198,12 +208,6 @@ def test_sensitive_controls_have_five_levels_and_flat_controls_stay_at_two() -> 
     }
     for (mode, parameter), expected in five.items():
         assert _levels(specs, mode, parameter) == expected
-    for mode, parameter in (
-        ("direct", "modes.0.filters.2.mu_1"),
-        ("pnr", "modes.0.filters.2.mu_1"),
-    ):
-        found = [spec for spec in specs if spec["mode"] == mode and spec["parameter"] == parameter]
-        assert len(found) == 1
     assigners = {
         mode: [spec["value"] for spec in specs if spec["mode"] == mode and spec["parameter"] == "assigner"]
         for mode in ("direct", "pnr")

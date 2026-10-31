@@ -231,7 +231,7 @@ def summary_notebook():
         [
             markdown('''# Compare the experiment runs
 
-The plan keeps the original ten direct-carpool runs, ten PNR runs, and one joint run (`e01` through `e21`). It then adds three levels for each sensitive control, so those controls have five values once the baseline and the original screen value are included. Horizon likewise has five levels: 5, 10, 15, 30, and 45 minutes. Both modes run with matching, bipartite, and greedy assignment. The Euclidean detour ratio stays at two points. Each single-mode variant changes exactly one setting relative to its own mode's baseline. The joint run, `e21_both_direct_first`, keeps both baseline filter sets and runs direct carpool before park-and-ride. Every run uses the full Georgia Tech 2022 trip file and the same network and lot files.
+The plan keeps the original ten direct-carpool runs, ten PNR runs, and one joint run (`e01` through `e21`). It then adds three levels for each sensitive control, so those controls have five values once the baseline and the original screen value are included. Horizon likewise has five levels: 5, 10, 15, 30, and 45 minutes. Both modes run with matching, bipartite, and greedy assignment. The Euclidean detour ratio has five levels: 1.05, 1.1, 1.25, 1.5, and 2. Each single-mode variant changes exactly one setting relative to its own mode's baseline. The joint run, `e21_both_direct_first`, keeps both baseline filter sets and runs direct carpool before park-and-ride. Every run uses the full Georgia Tech 2022 trip file and the same network and lot files.
 
 Run the experiment notebooks first, or use `python scripts/run_experiments.py --all`. This overview reads saved outputs and never reruns a simulation. Missing, incomplete, or stale runs stay visible in the status table. Runtime includes only `simulator.run()`; data loading, scoring, exporting, and charts are excluded.
 
@@ -406,7 +406,7 @@ def main():
     write_notebook(notebook_dir / "summary.ipynb", summary_notebook(), args.overwrite_executed)
     manifest = {
         "schema_version": 1,
-        "design": "one change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls and the horizon have five levels; both modes use matching, bipartite, and greedy",
+        "design": "one change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls, the horizon, and the Euclidean detour ratio have five levels; both modes use matching, bipartite, and greedy",
         "timing": "wall time of simulator.run() only; one fresh process, portal path cache, and exact nearest-node lookup cache per notebook",
         "repetitions": 1,
         "inputs": {"trips": "data_inputs/trip/gt_2022_off_campus_trips.csv", "network": "data_inputs/network", "lots": "data_inputs/network/lots.gpkg"},

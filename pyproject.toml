@@ -3,6 +3,8 @@ name = "carpoolsim"
 version = "0.1.0"
 description = "A scalable program to match drive alone trips into carpools"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "contextily>=1.7.1",
