@@ -30,6 +30,9 @@ data_inputs/**
 !data_inputs/**/
 !data_inputs/**/README.md
 !data_inputs/trip_mass/build_sov_trips.py
+!data_outputs/gt_2022/travelers.csv
+!data_outputs/gt_2022/matches.csv
+!data_outputs/gt_2022/legs.gpkg
 data_outputs/
 
 # Local scratch
