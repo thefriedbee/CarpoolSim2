@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "design": "one change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls and the horizon have five levels; both modes use matching, bipartite, and greedy",
+  "design": "one change per single-mode variant against a frozen mode-specific baseline; one joint baseline runs direct carpool before park-and-ride; sensitive controls, the horizon, and the Euclidean detour ratio have five levels; both modes use matching, bipartite, and greedy",
   "timing": "wall time of simulator.run() only; one fresh process, portal path cache, and exact nearest-node lookup cache per notebook",
   "repetitions": 1,
   "inputs": {
@@ -3706,6 +3706,324 @@
       "config_path": "config/experiments/e69_pnr_assigner_bipartite.yaml",
       "notebook_path": "notebooks/experiments/e69_pnr_assigner_bipartite.ipynb",
       "output_path": "data_outputs/experiments/e69_pnr_assigner_bipartite"
+    },
+    {
+      "experiment_id": "e70_direct_mu_1_1p05",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.05,
+      "description": "Set the Euclidean detour ratio to 1.05.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.05
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e70_direct_mu_1_1p05.yaml",
+      "notebook_path": "notebooks/experiments/e70_direct_mu_1_1p05.ipynb",
+      "output_path": "data_outputs/experiments/e70_direct_mu_1_1p05"
+    },
+    {
+      "experiment_id": "e71_direct_mu_1_1p1",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.1,
+      "description": "Set the Euclidean detour ratio to 1.1.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 1.1
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e71_direct_mu_1_1p1.yaml",
+      "notebook_path": "notebooks/experiments/e71_direct_mu_1_1p1.ipynb",
+      "output_path": "data_outputs/experiments/e71_direct_mu_1_1p1"
+    },
+    {
+      "experiment_id": "e72_direct_mu_1_2",
+      "mode": "direct",
+      "baseline_id": "e01_direct_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 2,
+      "description": "Set the Euclidean detour ratio to 2.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "direct",
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterOriginEuclideanDistance",
+                "r1": 5.0
+              },
+              {
+                "filter": "FilterRerouteEuclideanDistance",
+                "mu_1": 2.0
+              },
+              {
+                "filter": "FilterRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPassengerWaitTime",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e72_direct_mu_1_2.yaml",
+      "notebook_path": "notebooks/experiments/e72_direct_mu_1_2.ipynb",
+      "output_path": "data_outputs/experiments/e72_direct_mu_1_2"
+    },
+    {
+      "experiment_id": "e73_pnr_mu_1_1p05",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.05,
+      "description": "Set the Euclidean detour ratio to 1.05.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.05
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e73_pnr_mu_1_1p05.yaml",
+      "notebook_path": "notebooks/experiments/e73_pnr_mu_1_1p05.ipynb",
+      "output_path": "data_outputs/experiments/e73_pnr_mu_1_1p05"
+    },
+    {
+      "experiment_id": "e74_pnr_mu_1_1p1",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 1.1,
+      "description": "Set the Euclidean detour ratio to 1.1.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 1.1
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e74_pnr_mu_1_1p1.yaml",
+      "notebook_path": "notebooks/experiments/e74_pnr_mu_1_1p1.ipynb",
+      "output_path": "data_outputs/experiments/e74_pnr_mu_1_1p1"
+    },
+    {
+      "experiment_id": "e75_pnr_mu_1_2",
+      "mode": "pnr",
+      "baseline_id": "e11_pnr_baseline",
+      "parameter": "modes.0.filters.2.mu_1",
+      "baseline_value": 1.5,
+      "value": 2,
+      "description": "Set the Euclidean detour ratio to 2.",
+      "config": {
+        "horizon": 15.0,
+        "dt": 5.0,
+        "et": null,
+        "commit": "window",
+        "assigner": "matching",
+        "max_size": 100,
+        "modes": [
+          {
+            "name": "pnr",
+            "r_p": 5.0,
+            "filters": [
+              {
+                "filter": "FilterDepartureTime",
+                "delta1": 15.0
+              },
+              {
+                "filter": "FilterPnrAccess"
+              },
+              {
+                "filter": "FilterPnrRerouteEuclidean",
+                "mu_1": 2.0
+              },
+              {
+                "filter": "FilterPnrPassengerAccess",
+                "mu_3": 0.5
+              },
+              {
+                "filter": "FilterPnrRerouteTravelTime",
+                "gamma_1": 1.5
+              },
+              {
+                "filter": "FilterPnrSharedTravelTime",
+                "gamma_2": 0.5
+              },
+              {
+                "filter": "FilterPnrWait",
+                "delta2": 10.0
+              }
+            ]
+          }
+        ]
+      },
+      "config_path": "config/experiments/e75_pnr_mu_1_2.yaml",
+      "notebook_path": "notebooks/experiments/e75_pnr_mu_1_2.ipynb",
+      "output_path": "data_outputs/experiments/e75_pnr_mu_1_2"
     }
   ]
 }
