@@ -133,3 +133,7 @@ uv run pytest
 ```
 
 Open `docs/_build/html/index.html`. Read the Docs rebuilds the same site from `.readthedocs.yaml`.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
