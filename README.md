@@ -4,6 +4,10 @@ carpoolsim matches drive-alone trips into carpools. A clock walks through the da
 
 The packaged example is the Georgia Tech 2022 off-campus commute on an Atlanta street network. The same simulator also runs larger samples of morning drive-alone trips.
 
+One door-to-door carpool (SOV) and one park-and-ride carpool (PNR) from that morning. On the left the driver picks the rider up at home, then they share the ride to campus. On the right each person drives to a public lot and they share the ride from there. Orange is the driver, blue is the rider, and the dashed line is the shared ride. Both end on campus, so the destination marks sit on the same point. Each bar is 2 km. The street map is Esri, HERE, Garmin, and OpenStreetMap contributors.
+
+![A door-to-door carpool beside a park-and-ride carpool](static/modes.png)
+
 ## How a day is matched
 
 The clock starts at the earliest departure minus a look-ahead, `horizon`, and advances by a step, `dt`. Both are minutes. At clock `t` the pool holds every still-unmatched traveler whose departure lies in `[t, t + horizon]`.
