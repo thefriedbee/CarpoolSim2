@@ -4,32 +4,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
+EXAMPLE_FILES = ("travelers.csv", "matches.csv", "legs.gpkg")
+
 
 def root() -> Path:
     """Return the repository root that contains ``pyproject.toml``."""
     return Path(__file__).resolve().parents[1]
 
 
-def presets() -> list[Path]:
-    """Return the door-to-door file, the park-and-ride file, then experiments."""
-    project = root()
-    ordered = [
-        project / "config" / "gt_2022.yaml",
-        project / "config" / "gt_2022_pnr.yaml",
-    ]
-    ordered.extend(sorted((project / "config" / "experiments").glob("*.yaml")))
-    return [path for path in ordered if path.is_file()]
+def example_run() -> Path:
+    """Saved Georgia Tech results the demo displays.
 
-
-def preset_note(path: Path) -> str:
-    """Return the leading comments of a config file, as one sentence."""
-    lines: list[str] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith("#"):
-            lines.append(line.lstrip("#").strip())
-        elif line.strip():
-            break
-    return " ".join(lines)
+    The folder holds ``travelers.csv``, ``matches.csv``, and ``legs.gpkg``.
+    """
+    return root() / "data_outputs" / "gt_2022"
 
 
 def saved_runs() -> list[Path]:
@@ -43,12 +31,3 @@ def saved_runs() -> list[Path]:
         if (folder / "matches.csv").is_file() and (folder / "legs.gpkg").is_file():
             runs.append(folder)
     return runs
-
-
-def demo_output(stem: str) -> Path:
-    """Return the folder where a demo run of ``stem`` is written.
-
-    A second run of the same preset replaces this folder. The original
-    notebooks' outputs stay under their own directories.
-    """
-    return root() / "data_outputs" / "demo" / stem

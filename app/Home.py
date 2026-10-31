@@ -12,24 +12,29 @@ if str(ROOT) not in sys.path:
 import streamlit as st
 
 from app.jobs import summarize_saved
-from app.paths import root
+from app.paths import EXAMPLE_FILES
+from app.paths import example_run
 from app.ui import show_metrics
 
 st.set_page_config(page_title="CarpoolSim", layout="wide")
 
 st.title("CarpoolSim")
 st.write(
-    "Match drive-alone commute trips into carpools. "
-    "This demo uses the Georgia Tech 2022 off-campus trips on the Atlanta street network."
+    "Saved matches from the Georgia Tech 2022 off-campus commute. "
+    "The demo reads those results and does not match a new day."
 )
 
-saved = root() / "data_outputs" / "gt_2022"
-if (saved / "travelers.csv").is_file():
-    st.subheader("Saved door-to-door run")
+saved = example_run()
+if all((saved / name).is_file() for name in EXAMPLE_FILES):
+    st.subheader("Georgia Tech example")
     show_metrics(summarize_saved(saved))
-    st.caption("These numbers are already on disk in data_outputs/gt_2022.")
+    st.caption("These numbers are the saved run in data_outputs/gt_2022.")
+else:
+    st.info(
+        "The Georgia Tech example is read from data_outputs/gt_2022. "
+        "That folder needs travelers.csv, matches.csv, and legs.gpkg."
+    )
 
 st.subheader("Pages")
-st.page_link("pages/1_Run.py", label="Run", help="Choose a configuration and match the day.")
-st.page_link("pages/2_Results.py", label="Results", help="Charts and one carpool map.")
-st.page_link("pages/3_Experiments.py", label="Experiments", help="Compare the finished one-factor runs.")
+st.page_link("pages/1_Results.py", label="Results", help="Charts and one carpool map.")
+st.page_link("pages/2_Experiments.py", label="Experiments", help="Compare the finished one-factor runs.")

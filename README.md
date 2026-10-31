@@ -121,13 +121,13 @@ A park-and-ride file also needs lot coordinates. Build the Atlanta extract with 
 
 ## Demo
 
-With the app extra installed, and the Georgia Tech inputs on disk:
+With the app extra installed, and the saved Georgia Tech results on disk (`data_outputs/gt_2022` needs `travelers.csv`, `matches.csv`, and `legs.gpkg`):
 
 ```bash
 uv run streamlit run app/Home.py
 ```
 
-The demo loads a saved configuration, matches the day, and shows the saved results.
+The demo shows that saved run. It does not match a new day.
 
 ## Documentation and tests
 

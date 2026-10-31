@@ -1,4 +1,4 @@
-"""Charts and one map for a finished run."""
+"""Charts and one map for the saved Georgia Tech example."""
 
 from __future__ import annotations
 
@@ -19,37 +19,24 @@ from evaluation import plot_match
 from evaluation import plot_vehicle_saved
 from app.cache import results
 from app.jobs import summarize
-from app.paths import root
-from app.paths import saved_runs
+from app.paths import EXAMPLE_FILES
+from app.paths import example_run
 from app.ui import show_figure
 from app.ui import show_metrics
 
 st.set_page_config(page_title="Results", layout="wide")
-st.title("Results")
+st.title("Georgia Tech example")
+st.write("Door-to-door matches from the saved Georgia Tech 2022 off-campus run.")
 
-runs = saved_runs()
-if not runs:
-    st.info("No saved runs yet. Use Run to match the day.")
+directory = example_run()
+missing = [name for name in EXAMPLE_FILES if not (directory / name).is_file()]
+if missing:
+    st.info(
+        "The Georgia Tech example is read from data_outputs/gt_2022. "
+        "That folder needs travelers.csv, matches.csv, and legs.gpkg."
+    )
     st.stop()
 
-project = root()
-labels = [str(path.relative_to(project)) for path in runs]
-default = labels[0]
-for label in labels:
-    if label == "data_outputs/gt_2022":
-        default = label
-        break
-
-fresh = st.session_state.pop("result_dir", None)
-if fresh:
-    fresh_label = str(Path(str(fresh)).resolve().relative_to(project))
-    if fresh_label in labels:
-        st.session_state["saved_run"] = fresh_label
-elif "saved_run" not in st.session_state or st.session_state["saved_run"] not in labels:
-    st.session_state["saved_run"] = default
-
-choice = st.selectbox("Saved run", labels, key="saved_run")
-directory = runs[labels.index(choice)]
 revised = (directory / "travelers.csv").stat().st_mtime
 tables = results(str(directory), revised)
 show_metrics(summarize(tables.travelers, tables.matches))
