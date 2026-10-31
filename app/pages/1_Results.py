@@ -1,4 +1,4 @@
-"""Charts and one map for the saved Georgia Tech example."""
+"""Matched routes for the saved Georgia Tech example."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ import streamlit as st
 
 from evaluation import plot_before_after
 from evaluation import plot_by_hour
-from evaluation import plot_day
 from evaluation import plot_delta
 from evaluation import plot_match
 from evaluation import plot_vehicle_saved
@@ -24,9 +23,25 @@ from app.paths import example_run
 from app.ui import show_figure
 from app.ui import show_metrics
 
+
+def _match_label(row: dict[str, object], show_mode: bool) -> str:
+    """Name one carpool by its travelers and the minutes saved."""
+    saved = float(row["vehicle_min_saved"])
+    text = (
+        f"Driver {int(row['driver_id'])}, rider {int(row['rider_id'])}"
+        f" · {saved:.1f} min saved"
+    )
+    if show_mode:
+        text = f"{row['mode']} · {text}"
+    return text
+
+
 st.set_page_config(page_title="Results", layout="wide")
 st.title("Georgia Tech example")
-st.write("Door-to-door matches from the saved Georgia Tech 2022 off-campus run.")
+st.write(
+    "Each carpool is the driver's pickup, the shared ride, and the dropoff. "
+    "The left panel is the two drive-alone routes."
+)
 
 directory = example_run()
 missing = [name for name in EXAMPLE_FILES if not (directory / name).is_file()]
@@ -41,31 +56,33 @@ revised = (directory / "travelers.csv").stat().st_mtime
 tables = results(str(directory), revised)
 show_metrics(summarize(tables.travelers, tables.matches))
 
-charts, maps = st.tabs(["Charts", "Maps"])
-
-with charts:
-    left, right = st.columns(2)
-    with left:
-        show_figure(plot_before_after(tables.travelers))
-        show_figure(plot_vehicle_saved(tables.matches))
-    with right:
-        show_figure(plot_delta(tables.travelers))
-        show_figure(plot_by_hour(tables.travelers))
-
-with maps:
-    basemap = st.checkbox("Background map", value=False)
-    show_figure(plot_day(tables.travelers, tables.matches, basemap=basemap))
-    if tables.matches.empty:
-        st.info("This run has no carpools to draw.")
-    else:
-        match_ids = [int(match_id) for match_id in tables.matches["match_id"]]
-        match_id = st.selectbox("Carpool", match_ids)
-        show_figure(
-            plot_match(
-                match_id,
-                tables.travelers,
-                tables.matches,
-                tables.legs,
-                basemap=basemap,
-            )
+st.subheader("Matched routes")
+if tables.matches.empty:
+    st.info("This run has no carpools to draw.")
+else:
+    ordered = tables.matches.sort_values(
+        ["vehicle_min_saved", "match_id"], ascending=[False, True]
+    )
+    show_mode = ordered["mode"].nunique(dropna=True) > 1
+    labels = [_match_label(row, show_mode) for row in ordered.to_dict("records")]
+    choice = st.selectbox("Carpool", labels)
+    basemap = st.checkbox("Street map", value=False)
+    match_id = int(ordered.iloc[labels.index(choice)]["match_id"])
+    show_figure(
+        plot_match(
+            match_id,
+            tables.travelers,
+            tables.matches,
+            tables.legs,
+            basemap=basemap,
         )
+    )
+
+st.subheader("Travel time")
+left, right = st.columns(2)
+with left:
+    show_figure(plot_before_after(tables.travelers))
+    show_figure(plot_vehicle_saved(tables.matches))
+with right:
+    show_figure(plot_delta(tables.travelers))
+    show_figure(plot_by_hour(tables.travelers))
